@@ -6,9 +6,8 @@
 import Link from 'next/link';
 
 /**
- * Componente Footer
- * Responsabilidad Única (SRP): Pie de página institucional de la plataforma Ronda Vive Pass,
- * información oficial de la Alcaldía de Montería y políticas de privacidad de datos.
+ * Componente Footer (Versión Sobria y Limpia)
+ * Responsabilidad Única (SRP): Pie de página institucional de la plataforma Ronda Vive Pass.
  */
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -19,14 +18,13 @@ export default function Footer() {
         {/* Columna 1: Identidad Institucional y Ubicación */}
         <div className="site-footer__col">
           <div className="footer-brand">
-            <span className="footer-icon">🏛️</span>
             <strong>Alcaldía de Montería</strong>
           </div>
           <p className="footer-tagline">
             Plataforma Digital <strong>Ronda Vive Pass</strong>
           </p>
           <p className="footer-location">
-            📍 Calle 27 con Avenida Primera, Montería, Córdoba.
+            Calle 27 con Avenida Primera, Montería, Córdoba.
           </p>
         </div>
 

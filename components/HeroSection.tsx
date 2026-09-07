@@ -15,7 +15,7 @@ import rondaVive1 from '../app/imgs/la-ronda-vive-1-scaled.jpg';
 import rondaVive2 from '../app/imgs/la-ronda-vive-scaled.jpg';
 
 /**
- * Estructura de cada diapositiva del marco fotográfico cultural.
+ * Estructura de cada diapositiva del marco fotográfico.
  */
 export interface HeroSlideItem {
   image: StaticImageData;
@@ -32,33 +32,33 @@ const heroSlides: HeroSlideItem[] = [
     image: rioSinu,
     caption: 'El pulmón verde más extenso de Latinoamérica a orillas del Sinú',
     location: 'Río Sinú • Montería',
-    tag: '🌿 Patrimonio Natural'
+    tag: 'Patrimonio Natural'
   },
   {
     image: rondaVive1,
     caption: 'Punto de encuentro, cultura al aire libre y espacio familiar',
     location: 'Calle 27 con Avenida Primera',
-    tag: '📍 Corazón Ciudadano'
+    tag: 'Punto de Encuentro'
   },
   {
     image: rondaVive2,
     caption: 'Convivencia, tradición y expresión artística de nuestra gente',
     location: 'Montería, Córdoba',
-    tag: '🎭 Cultura Viva'
+    tag: 'Cultura Viva'
   }
 ];
 
 /**
- * Componente HeroSection (Experiencia Cultural de Montería)
- * Responsabilidad Única (SRP): Presentar el banner principal de bienvenida con identidad
- * de la Alcaldía de Montería, marco fotográfico viviente y accesos directos al registro por QR.
+ * Componente HeroSection (Versión Limpia, Sin Emojis)
+ * Responsabilidad Única (SRP): Presentar el banner principal sobrio con 2 botones de acción claros
+ * y galería fotográfica de Montería.
  */
 export default function HeroSection() {
   // Estado para el índice de la foto activa del carrusel (0, 1, 2)
   const [activeIdx, setActiveIdx] = useState<number>(0);
 
   /**
-   * Transición automática de las imágenes culturales cada 4.5 segundos.
+   * Transición automática de las imágenes cada 4.5 segundos.
    */
   useEffect(() => {
     const interval = setInterval(() => {
@@ -70,16 +70,14 @@ export default function HeroSection() {
 
   return (
     <section className="cultural-hero" aria-label="Bienvenida a La Ronda Vive en Montería">
-      {/* Fondo ambiental con gradiente cálido del río Sinú */}
+      {/* Fondo ambiental con gradiente sutil del río Sinú */}
       <div className="cultural-hero__bg-glow" />
 
       <div className="cultural-hero__grid">
-        {/* Columna Izquierda: Información institucional y llamado al ciudadano */}
+        {/* Columna Izquierda: Información sobria y 2 botones de acción */}
         <div className="cultural-hero__copy">
           <div className="cultural-hero__badges">
-            <span className="badge-gov">🏛️ Alcaldía de Montería</span>
-            <span className="badge-location">📍 Calle 27 con Av. Primera</span>
-            <span className="badge-nature">🌿 Ronda del Sinú</span>
+            <span className="badge-location">Calle 27 con Avenida Primera</span>
           </div>
 
           <h1 className="cultural-hero__title">
@@ -88,30 +86,25 @@ export default function HeroSection() {
 
           <p className="cultural-hero__lede">
             Registra tu asistencia en cada jornada y haz parte activa del punto de encuentro más
-            vibrante de nuestra ciudad. Un espacio de cultura, deporte y convivencia familiar.
+            vibrante de nuestra ciudad.
           </p>
 
-          {/* Acciones principales de la plataforma */}
+          {/* Únicamente 2 botones de acción claros */}
           <div className="cultural-hero__actions">
             <Link
               href="/register?event=RV-150926&code=RV-150926"
               className="cultural-btn cultural-btn--primary"
             >
-              <span className="btn-icon">📱</span>
-              <span className="btn-text">Registrar mi Asistencia</span>
-              <span className="btn-arrow">➔</span>
+              Registrar mi Asistencia
             </Link>
 
             <Link href="/pass" className="cultural-btn cultural-btn--secondary">
-              <span className="btn-icon">🎟️</span>
-              <span className="btn-text">Ver Mi Ronda Pass</span>
+              Ver Mi Ronda Pass
             </Link>
           </div>
-
-
         </div>
 
-        {/* Columna Derecha: Galería fotográfica interactiva de la ciudad */}
+        {/* Columna Derecha: Galería fotográfica limpia de la ciudad */}
         <div className="cultural-hero__frame-container">
           <div className="cultural-hero__frame-glow" />
           <div className="cultural-hero__frame">
@@ -133,21 +126,21 @@ export default function HeroSection() {
                   />
                   <div className="hero-photo-overlay" />
 
-                  {/* Etiqueta cultural superior en la foto */}
+                  {/* Etiqueta superior sin emoji */}
                   <div className="hero-photo-tag">
                     <span>{slide.tag}</span>
                   </div>
 
-                  {/* Leyenda explicativa en la parte inferior */}
+                  {/* Leyenda inferior limpia */}
                   <div className="hero-photo-caption">
-                    <span className="caption-loc">📍 {slide.location}</span>
+                    <span className="caption-loc">{slide.location}</span>
                     <p className="caption-desc">{slide.caption}</p>
                   </div>
                 </div>
               );
             })}
 
-            {/* Controles interactivos del carrusel fotográfico */}
+            {/* Controles interactivos del carrusel */}
             <div className="hero-photo-dots">
               {heroSlides.map((_, index) => (
                 <button
@@ -155,7 +148,7 @@ export default function HeroSection() {
                   type="button"
                   onClick={() => setActiveIdx(index)}
                   className={`dot-item ${index === activeIdx ? 'is-active' : ''}`}
-                  aria-label={`Ver fotografía cultural ${index + 1}`}
+                  aria-label={`Ver fotografía ${index + 1}`}
                 />
               ))}
             </div>
@@ -165,4 +158,3 @@ export default function HeroSection() {
     </section>
   );
 }
-

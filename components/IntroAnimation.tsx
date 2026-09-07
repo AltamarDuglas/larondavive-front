@@ -2,10 +2,10 @@
 
 /**
  * Importaciones de React y Next.js.
- * - useState, useEffect: Manejo del ciclo de vida, etapas de animación y carrusel cinemático.
- * - Image, StaticImageData: Renderizado optimizado de imágenes con Next.js.
+ * - useState, useEffect: Manejo de etapas de la secuencia de inicio y carrusel fotográfico.
+ * - Image, StaticImageData: Renderizado optimizado de imágenes institucionales.
  * - alcaldiaLogo: Logo oficial de la Alcaldía de Montería.
- * - rioSinu, rondaVive1, rondaVive2: Las 3 fotografías de las jornadas de la Ronda Vive.
+ * - rioSinu, rondaVive1, rondaVive2: Galería de imágenes de Montería.
  */
 import { useEffect, useState } from 'react';
 import Image, { type StaticImageData } from 'next/image';
@@ -16,17 +16,17 @@ import rondaVive2 from '../app/imgs/la-ronda-vive-scaled.jpg';
 
 /**
  * Interfaz de propiedades para IntroAnimation.
- * Aplicación de Inversión de Dependencias (DIP).
+ * Aplicación del principio de Inversión de Dependencias (DIP).
  */
 export interface IntroAnimationProps {
-  /** Callback ejecutado al finalizar la animación */
+  /** Callback ejecutado al finalizar la presentación */
   onComplete?: () => void;
-  /** Llave para reiniciar la presentación */
+  /** Llave para reiniciar la animación */
   replayKey?: number;
 }
 
 /**
- * Tipo para la definición de cada diapositiva cinemática estilo Rockstar Games.
+ * Estructura de cada diapositiva cinemática.
  */
 export interface RockstarSlide {
   image: StaticImageData;
@@ -36,7 +36,7 @@ export interface RockstarSlide {
 }
 
 /**
- * Las 3 fotografías oficiales de la Ronda del Sinú y la Calle 27 con estilo cinemático Rockstar.
+ * Las 3 fotografías oficiales de la Ronda del Sinú y la Calle 27.
  */
 const rockstarSlides: RockstarSlide[] = [
   {
@@ -60,21 +60,20 @@ const rockstarSlides: RockstarSlide[] = [
 ];
 
 /**
- * Secuencia de etapas de la animación introductoria.
+ * Secuencia de etapas de la animación introductoria:
  * 1. 'alcaldia': Logo oficial e inicio con barra estilo Bandera de Montería.
- * 2. 'rockstar-carousel': Carrusel cinemático rápido de alto impacto visual (Estilo Rockstar Games).
- * 3. 'ronda-vive': Presentación final del pase digital ciudadano.
- * 4. 'finished': Muestra el contenido principal de la aplicación.
+ * 2. 'rockstar-carousel': Carrusel cinemático de 3 fotografías.
+ * 3. 'finished': Finaliza la animación e ingresa al sitio principal.
  */
-export type IntroStage = 'alcaldia' | 'rockstar-carousel' | 'ronda-vive' | 'finished';
+export type IntroStage = 'alcaldia' | 'rockstar-carousel' | 'finished';
 
 /**
- * Componente IntroAnimation (Versión Cinemática Rockstar Games)
- * Responsabilidad Única (SRP): Presentación de la intro institucional y la secuencia rápida de fotos
- * con estética cinemática, viñeta de alto contraste y títulos en tipografía negrita.
+ * Componente IntroAnimation
+ * Responsabilidad Única (SRP): Presentar la bienvenida oficial de la Alcaldía de Montería
+ * y la secuencia de fotos de la ciudad sin excesos ni pantallas innecesarias.
  */
 export default function IntroAnimation({ onComplete, replayKey = 0 }: IntroAnimationProps) {
-  // Estado local para la etapa actual de la presentación
+  // Estado local para la etapa actual
   const [stage, setStage] = useState<IntroStage>('alcaldia');
 
   // Porcentaje de la barra de progreso (0% a 100%)
@@ -83,11 +82,11 @@ export default function IntroAnimation({ onComplete, replayKey = 0 }: IntroAnima
   // Controla la visibilidad animada de la estrella SVG amarilla al finalizar la barra
   const [showStar, setShowStar] = useState<boolean>(false);
 
-  // Índice de la foto activa dentro del carrusel cinemático Rockstar Games (0, 1, 2)
+  // Índice de la foto activa dentro del carrusel (0, 1, 2)
   const [activeSlideIndex, setActiveSlideIndex] = useState<number>(0);
 
   /**
-   * Efecto principal para coordinar la secuencia de etapas y temporizadores.
+   * Efecto principal para coordinar los tiempos de la secuencia.
    */
   useEffect(() => {
     setStage('alcaldia');
@@ -95,7 +94,7 @@ export default function IntroAnimation({ onComplete, replayKey = 0 }: IntroAnima
     setShowStar(false);
     setActiveSlideIndex(0);
 
-    // 1. Barra de tiempo progresiva para la etapa 1
+    // 1. Carga de la barra con la bandera de Montería (2.4s)
     const progressInterval = setInterval(() => {
       setProgress((prev) => {
         if (prev >= 100) {
@@ -103,36 +102,31 @@ export default function IntroAnimation({ onComplete, replayKey = 0 }: IntroAnima
           setShowStar(true);
           return 100;
         }
-        return prev + 3;
+        return prev + 3.5;
       });
     }, 30);
 
-    // 2. Transición a la etapa 'rockstar-carousel' a los 2.2 segundos
+    // 2. Transición al carrusel de fotografías a los 2.4 segundos
     const timer1 = setTimeout(() => {
       setStage('rockstar-carousel');
-    }, 2200);
+    }, 2400);
 
-    // 3. Avance de las 3 fotografías del carrusel Rockstar Games (1.3s cada foto para lectura cómoda)
+    // 3. Avance de las 3 fotografías (1.4s por foto)
     const slideTimer1 = setTimeout(() => {
       setActiveSlideIndex(1);
-    }, 3500);
+    }, 3800);
 
     const slideTimer2 = setTimeout(() => {
       setActiveSlideIndex(2);
-    }, 4800);
+    }, 5200);
 
-    // 4. Transición a la marca final 'ronda-vive' a los 6.1 segundos
+    // 4. Finalización e ingreso directo al sitio principal al terminar la 3ra foto (6.6s)
     const timer2 = setTimeout(() => {
-      setStage('ronda-vive');
-    }, 6100);
-
-    // 5. Finalización e integración con el sitio web a los 7.8 segundos
-    const timer3 = setTimeout(() => {
       setStage('finished');
       if (onComplete) {
         onComplete();
       }
-    }, 7800);
+    }, 6600);
 
     return () => {
       clearInterval(progressInterval);
@@ -140,7 +134,6 @@ export default function IntroAnimation({ onComplete, replayKey = 0 }: IntroAnima
       clearTimeout(slideTimer1);
       clearTimeout(slideTimer2);
       clearTimeout(timer2);
-      clearTimeout(timer3);
     };
   }, [replayKey, onComplete]);
 
@@ -159,18 +152,18 @@ export default function IntroAnimation({ onComplete, replayKey = 0 }: IntroAnima
   }
 
   return (
-    <aside className="intro-overlay" aria-label="Presentación cinemática de Ronda Vive">
+    <aside className="intro-overlay" aria-label="Presentación de inicio de la Alcaldía de Montería">
       {/* Fondo ambiental */}
       <div className="intro-overlay__backdrop" />
 
-      {/* Botón táctil para omitir la presentación */}
+      {/* Botón sobrio para omitir la presentación */}
       <button
         type="button"
         onClick={handleSkip}
         className="intro-overlay__skip-btn"
         aria-label="Omitir presentación"
       >
-        Omitir ➔
+        Omitir
       </button>
 
       <div className="intro-overlay__content">
@@ -192,12 +185,11 @@ export default function IntroAnimation({ onComplete, replayKey = 0 }: IntroAnima
             </div>
 
             <h1 className="intro-title">
-              Alcaldía de <span className="text-highlight-green">Montería</span>
+              Alcaldía de <span className="text-highlight-white">Montería</span>
             </h1>
 
             <p className="intro-subtitle">
-              ¡Bienvenidos a la Ronda Vive! El punto de encuentro en la{' '}
-              <strong>Calle 27 con Avenida Primera</strong>.
+              Punto de encuentro en la <strong>Calle 27 con Avenida Primera</strong>
             </p>
 
             {/* Barra de progreso estilo Bandera de Montería (Rojo, Blanco, Azul) */}
@@ -226,7 +218,7 @@ export default function IntroAnimation({ onComplete, replayKey = 0 }: IntroAnima
           </div>
         )}
 
-        {/* ETAPA 2: Carrusel Rápido Cinemático Estilo Rockstar Games */}
+        {/* ETAPA 2: Carrusel Cinemático de Fotografías de Montería */}
         {stage === 'rockstar-carousel' && (
           <div className="rockstar-stage">
             {rockstarSlides.map((slide, index) => {
@@ -237,7 +229,6 @@ export default function IntroAnimation({ onComplete, replayKey = 0 }: IntroAnima
                   key={slide.title}
                   className={`rockstar-slide ${isActive ? 'is-active' : ''}`}
                 >
-                  {/* Fotografía a pantalla completa con efecto zoom pan y viñeta cinemática */}
                   <Image
                     src={slide.image}
                     alt={slide.title}
@@ -248,7 +239,6 @@ export default function IntroAnimation({ onComplete, replayKey = 0 }: IntroAnima
                   />
                   <div className="rockstar-slide__vignette" />
 
-                  {/* Título y leyendas al estilo tipográfico de Rockstar Games */}
                   <div className="rockstar-slide__card">
                     <span className="rockstar-badge">{slide.location}</span>
                     <h2 className="rockstar-title">{slide.title}</h2>
@@ -257,29 +247,6 @@ export default function IntroAnimation({ onComplete, replayKey = 0 }: IntroAnima
                 </div>
               );
             })}
-          </div>
-        )}
-
-        {/* ETAPA 3: Revelación Final de La Ronda Vive Pass */}
-        {stage === 'ronda-vive' && (
-          <div className="intro-stage intro-stage--ronda">
-            <div className="intro-badge intro-badge--blue">
-              <span className="intro-badge__icon">🌟</span>
-              <span className="intro-badge__text">Tu Pase Ciudadano</span>
-            </div>
-
-            <h1 className="intro-title intro-title--hero">
-              La Ronda <span className="text-highlight-blue">Vive</span>{' '}
-              <span className="text-tag-pass">PASS</span>
-            </h1>
-
-            <p className="intro-subtitle">
-              Registra tu asistencia en cada jornada, conoce tu historial de visitas y vive la ciudad.
-            </p>
-
-            <div className="intro-location-pill">
-              <span>📍 Calle 27 con Avenida Primera • Montería</span>
-            </div>
           </div>
         )}
       </div>

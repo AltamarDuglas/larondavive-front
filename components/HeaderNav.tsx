@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * Importaciones de Next.js para navegación sin recarga.
+ * Importaciones de Next.js para navegación limpia y sin recarga.
  */
 import Link from 'next/link';
 
@@ -14,17 +14,17 @@ export interface HeaderNavProps {
 }
 
 /**
- * Componente HeaderNav (Versión Ciudadana Oficial)
- * Responsabilidad Única (SRP): Encabezado superior con la identidad de la Alcaldía de Montería
- * y enlaces directos en lenguaje natural para la ciudadanía.
+ * Componente HeaderNav (Versión Sobria y Profesional)
+ * Responsabilidad Única (SRP): Encabezado superior con la identidad institucional de la Alcaldía de Montería
+ * sin emojis ni saturación visual.
  */
 export default function HeaderNav({ onReplayIntro }: HeaderNavProps) {
   return (
     <header className="site-header" aria-label="Navegación oficial de La Ronda Vive">
       <div className="site-header__inner">
-        {/* Marca institucional unificada */}
+        {/* Marca institucional sobria */}
         <Link href="/" className="site-header__brand" aria-label="Ir al inicio de Ronda Vive">
-          <span className="brand-badge-gov">🏛️ Alcaldía de Montería</span>
+          <span className="brand-badge-gov">Alcaldía de Montería</span>
           <span className="brand-title">
             La Ronda Vive <span className="brand-tag">PASS</span>
           </span>
@@ -48,7 +48,7 @@ export default function HeaderNav({ onReplayIntro }: HeaderNavProps) {
             Panel de Control
           </Link>
 
-          {/* Botón para reproducir la intro */}
+          {/* Botón sobrio para reproducir la intro */}
           {onReplayIntro && (
             <button
               type="button"
@@ -56,7 +56,7 @@ export default function HeaderNav({ onReplayIntro }: HeaderNavProps) {
               className="nav-btn-intro"
               title="Ver presentación inicial"
             >
-              🎬 Intro
+              Intro
             </button>
           )}
         </nav>

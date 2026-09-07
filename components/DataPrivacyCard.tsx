@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * Componente DataPrivacyCard (Lenguaje Ciudadano Reasegurador)
+ * Componente DataPrivacyCard (Versión Sobria)
  * Responsabilidad Única (SRP): Transmitir confianza al ciudadano sobre la protección de sus datos
  * personales de acuerdo con la legislación colombiana (Habeas Data).
  */
@@ -20,7 +20,6 @@ export default function DataPrivacyCard() {
         {/* Tarjeta 1: Datos Solicitados */}
         <article className="privacy-card">
           <div className="privacy-card__head">
-            <span className="privacy-card__icon">📋</span>
             <h3>Datos Básicos</h3>
           </div>
           <p className="privacy-card__text">
@@ -32,7 +31,6 @@ export default function DataPrivacyCard() {
         {/* Tarjeta 2: Facilidad de Confirmación */}
         <article className="privacy-card">
           <div className="privacy-card__head">
-            <span className="privacy-card__icon">📲</span>
             <h3>Registro Rápido</h3>
           </div>
           <p className="privacy-card__text">
@@ -44,7 +42,6 @@ export default function DataPrivacyCard() {
         {/* Tarjeta 3: Compromiso de la Alcaldía */}
         <article className="privacy-card">
           <div className="privacy-card__head">
-            <span className="privacy-card__icon">🏛️</span>
             <h3>Compromiso de Ciudad</h3>
           </div>
           <p className="privacy-card__text">
