@@ -1096,6 +1096,275 @@ input {
 }
 
 /* ==========================================================================
+   9. FLUJO INTERACTIVO DE REGISTRO EN 2 PASOS (RegisterFormClient.tsx)
+   ========================================================================== */
+
+.register-client-container {
+  max-width: 640px;
+  margin: 32px auto;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.step-progress-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.step-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-subtle);
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: var(--surface-white);
+  border: 1px solid var(--border-light);
+}
+
+.step-pill span {
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.76rem;
+}
+
+.step-pill.is-active {
+  color: var(--monteria-blue-dark);
+  border-color: var(--border-blue);
+  background: rgba(37, 99, 235, 0.06);
+}
+
+.step-pill.is-active span {
+  background: var(--monteria-blue);
+  color: #ffffff;
+}
+
+.step-pill.is-completed {
+  color: var(--monteria-red-dark);
+  border-color: var(--border-red);
+  background: rgba(220, 38, 38, 0.06);
+}
+
+.step-pill.is-completed span {
+  background: var(--monteria-red);
+  color: #ffffff;
+}
+
+.step-line {
+  width: 32px;
+  height: 2px;
+  background: var(--border-light);
+}
+
+.form-step-card,
+.success-ticket-card {
+  background: var(--surface-white);
+  border: 1px solid var(--border-light);
+  border-radius: 24px;
+  padding: 32px 28px;
+  box-shadow: var(--shadow-md);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-step-head {
+  display: grid;
+  gap: 6px;
+}
+
+.form-step-head h2 {
+  font-family: Georgia, serif;
+  font-size: 1.6rem;
+  margin: 0;
+  color: var(--text-main);
+}
+
+.clean-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-label-text {
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.clean-input {
+  width: 100%;
+  min-height: 48px;
+  padding: 0 16px;
+  border-radius: 12px;
+  border: 1.5px solid var(--border-light);
+  background: var(--surface-white);
+  font-size: 0.95rem;
+  color: var(--text-main);
+  transition: all 160ms ease;
+}
+
+.clean-input:focus {
+  outline: none;
+  border-color: var(--monteria-blue);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.clean-input--code {
+  font-size: 1.1rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.form-row-2col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.code-status-badge {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  border-radius: 12px;
+  background: rgba(37, 99, 235, 0.06);
+  border: 1px solid var(--border-blue);
+  font-size: 0.86rem;
+  color: var(--monteria-blue-dark);
+}
+
+.btn-change-code {
+  background: none;
+  border: none;
+  color: var(--monteria-red-dark);
+  font-size: 0.8rem;
+  font-weight: 800;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.consent-box {
+  margin-top: 4px;
+}
+
+.check-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.check-label input {
+  margin-top: 2px;
+  accent-color: var(--monteria-blue);
+}
+
+.form-actions,
+.ticket-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.form-error-alert {
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: rgba(220, 38, 38, 0.08);
+  border: 1px solid var(--border-red);
+  color: var(--monteria-red-dark);
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+/* TICKET DIGITAL DE ASISTENCIA */
+.success-ticket-card {
+  text-align: center;
+  border-top: 4px solid var(--monteria-blue);
+}
+
+.ticket-badge-success {
+  display: inline-block;
+  background: rgba(37, 99, 235, 0.1);
+  border: 1px solid var(--border-blue);
+  color: var(--monteria-blue-dark);
+  padding: 4px 14px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.ticket-header h2 {
+  font-family: Georgia, serif;
+  font-size: 1.8rem;
+  margin: 8px 0 4px;
+  color: var(--text-main);
+}
+
+.ticket-header p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.ticket-details-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  background: var(--bg-main);
+  padding: 18px;
+  border-radius: 16px;
+  border: 1px solid var(--border-light);
+  text-align: left;
+}
+
+.ticket-detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.item-label {
+  font-size: 0.76rem;
+  font-weight: 800;
+  color: var(--text-subtle);
+  text-transform: uppercase;
+}
+
+.item-value {
+  font-size: 0.95rem;
+  color: var(--text-main);
+  font-weight: 700;
+}
+
+@media (max-width: 600px) {
+  .form-row-2col,
+  .ticket-details-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ==========================================================================
    10. ADAPTABILIDAD RESPONSIVA (Mobile & Tablet)
    ========================================================================== */
 
