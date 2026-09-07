@@ -339,7 +339,7 @@ input {
 }
 
 /* ==========================================================================
-   2. ENCABEZADO Y NAVEGACIÓN INSTITUCIONAL (HeaderNav.tsx)
+   2. ENCABEZADO Y NAVEGACIÓN COMPACTA EN 1 LÍNEA (HeaderNav.tsx)
    ========================================================================== */
 
 .site-header {
@@ -351,233 +351,233 @@ input {
   background: var(--surface-glass-strong);
   backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--border-light);
-  box-shadow: 0 4px 20px rgba(37, 99, 235, 0.05);
+  box-shadow: 0 2px 12px rgba(15, 23, 42, 0.04);
 }
 
 .site-header__inner {
-  max-width: 1140px;
+  max-width: 1040px;
   margin: 0 auto;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: 12px;
 }
 
 .site-header__brand {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   text-decoration: none;
+  font-size: 0.92rem;
+  white-space: nowrap;
 }
 
-.brand-badge-gov {
-  font-size: 0.78rem;
-  font-weight: 800;
-  color: var(--monteria-red-dark);
-  background: rgba(220, 38, 38, 0.08);
-  padding: 5px 12px;
-  border-radius: 999px;
-  border: 1px solid var(--border-red);
+.brand-banner-img {
+  height: 34px;
+  width: auto;
+  object-fit: contain;
+  max-width: 160px;
 }
 
-.brand-title {
+.brand-divider {
+  color: var(--border-light);
+  font-weight: 300;
+}
+
+.brand-title-text {
   font-family: Georgia, serif;
-  font-weight: 800;
-  font-size: 1.15rem;
+  font-weight: 700;
   color: var(--text-main);
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.brand-tag {
-  background: var(--monteria-blue);
-  color: #ffffff;
-  padding: 2px 8px;
-  border-radius: 6px;
-  font-size: 0.65rem;
-  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-  font-weight: 900;
-  letter-spacing: 0.05em;
-  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
 }
 
 .site-header__nav {
   display: flex;
   align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
+  gap: 8px;
 }
 
-.nav-item {
-  padding: 7px 14px;
+.nav-link {
+  padding: 6px 12px;
   border-radius: 999px;
-  font-size: 0.88rem;
+  font-size: 0.84rem;
   font-weight: 700;
   color: var(--text-main);
   transition: all 140ms ease;
+  white-space: nowrap;
 }
 
-.nav-item:hover {
+.nav-link:hover {
   background: rgba(37, 99, 235, 0.08);
   color: var(--monteria-blue);
 }
 
-.nav-item--subtle {
-  color: var(--text-subtle);
+.nav-link--primary {
+  color: var(--monteria-blue-dark);
+  background: rgba(37, 99, 235, 0.08);
 }
 
 .nav-btn-intro {
   background: rgba(220, 38, 38, 0.08);
   border: 1px solid var(--border-red);
   color: var(--monteria-red-dark);
-  padding: 6px 14px;
+  padding: 5px 12px;
   border-radius: 999px;
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   font-weight: 800;
   cursor: pointer;
   transition: all 160ms ease;
+  white-space: nowrap;
 }
 
 .nav-btn-intro:hover {
   background: rgba(220, 38, 38, 0.16);
-  transform: translateY(-1px);
 }
 
 /* ==========================================================================
-   3. HERO BANNER DE MONTERÍA (HeroSection.tsx)
+   3. HERO ULTRA-LIMPIO Y DIRECTO (HeroSection.tsx)
    ========================================================================== */
 
-.cultural-hero {
-  position: relative;
-  padding: 40px 20px 48px;
-  max-width: 1140px;
+.clean-hero {
+  padding: 40px 20px 32px;
+  max-width: 900px;
   margin: 0 auto;
-  overflow: hidden;
 }
 
-.cultural-hero__bg-glow {
-  position: absolute;
-  top: -100px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 800px;
-  height: 400px;
-  background: radial-gradient(ellipse at center, rgba(220, 38, 38, 0.1) 0%, rgba(37, 99, 235, 0.1) 50%, transparent 75%);
-  filter: blur(50px);
-  pointer-events: none;
-  z-index: 0;
-}
-
-.cultural-hero__grid {
-  position: relative;
-  z-index: 5;
-  display: grid;
-  grid-template-columns: 1.15fr 0.85fr;
-  gap: 36px;
-  align-items: center;
-}
-
-.cultural-hero__copy {
+.clean-hero__container {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 16px;
-}
-
-.cultural-hero__badges {
-  display: flex;
   align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
+  text-align: center;
+  gap: 24px;
 }
 
-.badge-location {
-  font-size: 0.78rem;
-  font-weight: 800;
-  color: var(--monteria-blue-dark);
-  background: rgba(37, 99, 235, 0.08);
-  padding: 5px 14px;
-  border-radius: 999px;
-  border: 1px solid var(--border-blue);
+.clean-hero__header {
+  display: grid;
+  gap: 10px;
+  max-width: 640px;
 }
 
-.cultural-hero__title {
+.clean-hero__title {
   font-family: Georgia, 'Times New Roman', serif;
-  font-size: clamp(2.4rem, 4.8vw, 3.8rem);
-  line-height: 1.08;
+  font-size: clamp(2.1rem, 4.5vw, 3.2rem);
+  line-height: 1.12;
   color: var(--text-main);
   margin: 0;
   font-weight: 800;
 }
 
-.text-gradient-sinu {
-  background: linear-gradient(135deg, var(--monteria-blue-dark), var(--monteria-blue));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+.title-accent {
+  color: var(--monteria-blue);
 }
 
-.cultural-hero__lede {
+.clean-hero__subtitle {
   margin: 0;
-  font-size: 1.08rem;
-  line-height: 1.6;
+  font-size: 1.05rem;
+  line-height: 1.5;
   color: var(--text-muted);
-  max-width: 580px;
 }
 
-.cultural-hero__actions {
+.clean-hero__actions {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 12px;
-  flex-wrap: wrap;
-  margin-top: 8px;
+  width: 100%;
+  max-width: 480px;
 }
 
-.cultural-btn {
+.clean-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 50px;
-  padding: 0 26px;
+  flex: 1;
+  min-height: 48px;
+  padding: 0 22px;
   border-radius: 999px;
-  font-size: 0.95rem;
+  font-size: 0.92rem;
   font-weight: 800;
   border: 1px solid transparent;
   cursor: pointer;
-  transition: all 180ms cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 180ms ease;
   text-decoration: none;
+  white-space: nowrap;
 }
 
-.cultural-btn--primary {
+.clean-btn--primary {
   color: #ffffff;
-  background: linear-gradient(135deg, var(--monteria-blue-dark), var(--monteria-blue));
-  box-shadow:
-    0 10px 24px rgba(37, 99, 235, 0.28),
-    0 2px 6px rgba(37, 99, 235, 0.15);
+  background: var(--monteria-blue);
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.25);
 }
 
-.cultural-btn--primary:hover {
-  transform: translateY(-2px);
-  box-shadow:
-    0 14px 32px rgba(37, 99, 235, 0.38),
-    0 4px 10px rgba(37, 99, 235, 0.2);
-  background: linear-gradient(135deg, var(--monteria-blue), var(--monteria-blue-light));
+.clean-btn--primary:hover {
+  background: var(--monteria-blue-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(37, 99, 235, 0.35);
 }
 
-.cultural-btn--secondary {
+.clean-btn--secondary {
   background: var(--surface-white);
   color: var(--text-main);
   border: 1.5px solid var(--border-light);
   box-shadow: var(--shadow-sm);
 }
 
-.cultural-btn--secondary:hover {
-  transform: translateY(-2px);
-  background: var(--surface-white);
-  border-color: var(--border-blue);
+.clean-btn--secondary:hover {
+  border-color: var(--monteria-blue);
   color: var(--monteria-blue);
-  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
 }
+
+/* MARCO FOTOGRÁFICO DE APOYO */
+.clean-hero__gallery {
+  width: 100%;
+  max-width: 800px;
+  margin-top: 8px;
+}
+
+.clean-gallery__frame {
+  position: relative;
+  width: 100%;
+  height: 280px;
+  border-radius: 24px;
+  overflow: hidden;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  box-shadow: var(--shadow-md);
+  background: #091122;
+}
+
+.gallery-slide {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 600ms ease;
+}
+
+.gallery-slide.is-active {
+  opacity: 1;
+}
+
+.gallery-slide__img {
+  object-fit: cover;
+  object-position: center;
+}
+
+.gallery-slide__overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 50%, rgba(0, 0, 0, 0.7) 100%);
+}
+
+.gallery-slide__caption {
+  position: absolute;
+  bottom: 16px;
+  left: 20px;
+  z-index: 10;
+  color: #ffffff;
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
 
 /* MARCO FOTOGRÁFICO DE MONTERÍA */
 .cultural-hero__frame-container {
@@ -1120,32 +1120,60 @@ input {
 }
 
 @media (max-width: 720px) {
+  .site-header {
+    padding: 10px 14px;
+  }
+
   .site-header__inner {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .brand-banner-img {
+    height: 26px;
+    max-width: 120px;
+  }
+
+  .brand-title-text {
+    font-size: 0.88rem;
+  }
+
+  .nav-link {
+    padding: 4px 10px;
+    font-size: 0.78rem;
+  }
+
+  .nav-btn-intro {
+    padding: 4px 10px;
+    font-size: 0.76rem;
+  }
+
+  .clean-hero {
+    padding: 24px 16px 20px;
+  }
+
+  .clean-hero__title {
+    font-size: 1.8rem;
+  }
+
+  .clean-hero__subtitle {
+    font-size: 0.92rem;
+  }
+
+  .clean-hero__actions {
     flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-  }
-
-  .site-header__nav {
-    width: 100%;
-    justify-content: flex-start;
-  }
-
-  .cultural-hero {
-    padding: 24px 16px 36px;
-  }
-
-  .cultural-hero__actions {
-    width: 100%;
-    flex-direction: column;
-  }
-
-  .cultural-btn {
     width: 100%;
   }
 
-  .cultural-hero__frame {
-    height: 280px;
+  .clean-btn {
+    width: 100%;
+    min-height: 44px;
+  }
+
+  .clean-gallery__frame {
+    height: 220px;
   }
 
   .flow-steps-grid,

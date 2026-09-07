@@ -45,7 +45,7 @@ export default function CitizenFlow() {
     <section className="section citizen-flow-section" aria-label="Pasos de registro para ciudadanos">
       <div className="section-heading text-center">
         <p className="eyebrow">Paso a Paso</p>
-        <h2>¿Cómo registrarte en Ronda Vive?</h2>
+        <h2>¿Cómo registrar tu asistencia en la Ronda Vive?</h2>
         <p className="lede">
           Cuatro pasos sencillos para confirmar tu presencia en la jornada desde tu celular.
         </p>
