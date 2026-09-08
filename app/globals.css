@@ -2063,3 +2063,527 @@ button.step-pill {
   background: rgba(15, 23, 42, 0.12);
   color: var(--text-main);
 }
+
+/* ==========================================================================
+   12. PANEL DE ADMINISTRACIÓN INSTITUCIONAL (apps/web/app/admin/page.tsx)
+   ========================================================================== */
+
+.admin-container {
+  width: min(1040px, calc(100% - 32px));
+  margin: 24px auto 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.admin-header-card {
+  background: var(--surface-white);
+  border: 1px solid var(--border-light);
+  border-radius: 24px;
+  padding: 32px;
+  box-shadow: var(--shadow-md);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.admin-header-content {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.admin-header-title {
+  max-width: 680px;
+}
+
+.admin-header-title h1 {
+  font-family: Georgia, serif;
+  font-size: clamp(1.8rem, 4vw, 2.4rem);
+  margin: 4px 0 8px;
+  color: var(--text-main);
+}
+
+.connection-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  border: 1px solid transparent;
+}
+
+.connection-status-pill.is-connected {
+  background: rgba(34, 197, 94, 0.1);
+  color: #15803d;
+  border-color: rgba(34, 197, 94, 0.3);
+}
+
+.connection-status-pill.is-local {
+  background: rgba(234, 179, 8, 0.1);
+  color: #a16207;
+  border-color: rgba(234, 179, 8, 0.3);
+}
+
+.admin-header-actions {
+  display: flex;
+  gap: 12px;
+  max-width: 480px;
+}
+
+.admin-metrics-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.admin-metric-card {
+  background: var(--surface-white);
+  border: 1px solid var(--border-light);
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  transition: transform 160ms ease;
+}
+
+.admin-metric-card:hover {
+  transform: translateY(-2px);
+}
+
+.metric-icon {
+  font-size: 1.8rem;
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: rgba(37, 99, 235, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.metric-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.metric-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-subtle);
+  text-transform: uppercase;
+}
+
+.metric-value {
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: var(--text-main);
+  line-height: 1.2;
+}
+
+.admin-tabs-bar {
+  display: flex;
+  gap: 8px;
+  border-bottom: 2px solid var(--border-light);
+  padding-bottom: 2px;
+  overflow-x: auto;
+}
+
+.admin-tab-btn {
+  padding: 10px 20px;
+  border-radius: 12px 12px 0 0;
+  background: transparent;
+  border: none;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 160ms ease;
+  white-space: nowrap;
+}
+
+.admin-tab-btn:hover {
+  color: var(--monteria-blue);
+  background: rgba(37, 99, 235, 0.05);
+}
+
+.admin-tab-btn.is-active {
+  color: var(--monteria-blue-dark);
+  background: var(--surface-white);
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.04);
+  border-bottom: 3px solid var(--monteria-blue);
+}
+
+.admin-card {
+  background: var(--surface-white);
+  border: 1px solid var(--border-light);
+  border-radius: 20px;
+  padding: 28px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.card-header-flex {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.card-desc {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  margin: 2px 0 0;
+}
+
+.comuna-stats-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.comuna-stat-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.comuna-stat-head {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+}
+
+.comuna-name {
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.comuna-bar-track {
+  height: 8px;
+  border-radius: 999px;
+  background: #f1f5f9;
+  overflow: hidden;
+}
+
+.comuna-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--monteria-blue), #3b82f6);
+}
+
+.admin-info-box {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: #f8fafc;
+  padding: 16px;
+  border-radius: 14px;
+  border: 1px solid var(--border-light);
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.88rem;
+}
+
+.admin-notice-box {
+  background: rgba(37, 99, 235, 0.05);
+  border: 1px solid var(--border-blue);
+  padding: 16px;
+  border-radius: 14px;
+}
+
+.admin-notice-box h4 {
+  margin: 0 0 6px;
+  color: var(--monteria-blue-dark);
+}
+
+.admin-notice-box p {
+  margin: 0;
+  font-size: 0.86rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+/* Tablas Administrativas */
+.table-wrapper {
+  overflow-x: auto;
+  border-radius: 14px;
+  border: 1px solid var(--border-light);
+}
+
+.admin-data-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.88rem;
+}
+
+.admin-data-table th {
+  background: #f8fafc;
+  padding: 12px 16px;
+  font-weight: 800;
+  color: var(--text-subtle);
+  border-bottom: 1.5px solid var(--border-light);
+  white-space: nowrap;
+}
+
+.admin-data-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-light);
+  vertical-align: middle;
+}
+
+.admin-data-table tr:last-child td {
+  border-bottom: none;
+}
+
+.code-tag {
+  background: rgba(37, 99, 235, 0.08);
+  color: var(--monteria-blue-dark);
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-family: monospace;
+}
+
+.status-badge {
+  font-size: 0.78rem;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 999px;
+  display: inline-block;
+}
+
+.status-activa {
+  background: rgba(34, 197, 94, 0.1);
+  color: #15803d;
+}
+
+.status-programada {
+  background: rgba(234, 179, 8, 0.1);
+  color: #a16207;
+}
+
+.status-finalizada {
+  background: rgba(100, 116, 139, 0.1);
+  color: #475569;
+}
+
+.btn-table-action {
+  background: var(--surface-white);
+  border: 1px solid var(--border-light);
+  color: var(--monteria-blue-dark);
+  font-weight: 700;
+  font-size: 0.8rem;
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 140ms ease;
+}
+
+.btn-table-action:hover {
+  background: var(--monteria-blue);
+  color: #ffffff;
+}
+
+.table-filter-bar {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.filter-search {
+  flex: 1;
+  min-width: 260px;
+}
+
+/* Modales Administrativos */
+.admin-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.admin-modal-card {
+  background: var(--surface-white);
+  border-radius: 24px;
+  padding: 32px;
+  width: min(540px, 100%);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.admin-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.admin-modal-header h3 {
+  margin: 2px 0 0;
+  font-family: Georgia, serif;
+  font-size: 1.4rem;
+}
+
+.admin-modal-close {
+  background: rgba(15, 23, 42, 0.06);
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+.admin-modal-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+/* PENDÓN QR DE IMPRESIÓN OFICIAL */
+.qr-poster-modal {
+  width: min(600px, 100%);
+}
+
+.qr-poster-frame {
+  background: #ffffff;
+  border: 4px double #000000;
+  padding: 36px 24px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.qr-poster-head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.poster-institution {
+  font-size: 0.85rem;
+  font-weight: 900;
+  letter-spacing: 2px;
+  color: #0f172a;
+}
+
+.poster-department {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #dc2626;
+}
+
+.poster-title {
+  font-family: Georgia, serif;
+  font-size: 2.2rem;
+  margin: 8px 0 0;
+  color: #2563eb;
+}
+
+.poster-subtitle {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #475569;
+  margin: 0;
+}
+
+.qr-image-wrapper {
+  position: relative;
+  border: 3px solid #000000;
+  padding: 16px;
+  background: #ffffff;
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.qr-code-img {
+  width: 240px;
+  height: 240px;
+  object-fit: contain;
+}
+
+.qr-badge-code {
+  background: #2563eb;
+  color: #ffffff;
+  font-size: 1.2rem;
+  font-weight: 900;
+  padding: 6px 20px;
+  border-radius: 999px;
+  letter-spacing: 1px;
+}
+
+.poster-instructions {
+  font-size: 1rem;
+  color: #0f172a;
+  max-width: 440px;
+  margin: 0 auto;
+}
+
+.poster-link-box {
+  background: #f1f5f9;
+  border: 1px dashed #64748b;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-family: monospace;
+}
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .admin-modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: #ffffff;
+    padding: 0;
+  }
+  .qr-poster-modal {
+    box-shadow: none;
+    padding: 0;
+    width: 100%;
+  }
+  .qr-poster-frame,
+  .qr-poster-frame * {
+    visibility: visible;
+  }
+  .qr-poster-frame {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    border: none;
+  }
+}

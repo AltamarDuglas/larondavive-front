@@ -32,6 +32,8 @@ import {
   TermsAcceptanceOption,
 } from '../types/registration';
 
+import { registerAsistenciaSync } from '../lib/supabaseClient';
+
 /**
  * Interfaz de propiedades para RegisterFormClient.
  */
@@ -239,38 +241,30 @@ export default function RegisterFormClient({
       return;
     }
 
-    // Almacenar datos consolidados en localStorage para futuros registros
-    try {
-      const fullDataPayload = {
-        fullName: fullName.trim(),
-        phone: phone.trim(),
-        email: email.trim(),
-        ageRange,
-        genderIdentity,
-        bornInMonteria,
-        birthLocation: bornInMonteria ? 'Montería (Córdoba)' : birthLocation.trim(),
-        attendedWithChildren,
-        childrenCount,
-        comuna,
-        barrio: barrio.trim(),
-        zone,
-        populationGroup,
-        socialGroup,
-        otherSocialGroupSpec: socialGroup === 'Otros' ? otherSocialGroupSpec.trim() : '',
-        acceptedHabeasData,
-        acceptedTermsAndConditions,
-      };
+    // Almacenar datos consolidados en localStorage y sincronizar con Supabase
+    const fullDataPayload = {
+      code: code.trim(),
+      fullName: fullName.trim(),
+      phone: phone.trim(),
+      email: email.trim(),
+      ageRange: ageRange as AgeRangeOption,
+      genderIdentity: genderIdentity as GenderIdentityOption,
+      bornInMonteria,
+      birthLocation: bornInMonteria ? 'Montería (Córdoba)' : birthLocation.trim(),
+      attendedWithChildren,
+      childrenCount,
+      comuna: comuna as ComunaOption,
+      barrio: barrio.trim(),
+      zone: zone as ZoneOption,
+      populationGroup: populationGroup as PopulationGroupOption,
+      socialGroup: socialGroup as SocialGroupOption,
+      otherSocialGroupSpec: socialGroup === 'Otros' ? otherSocialGroupSpec.trim() : '',
+      acceptedHabeasData,
+      acceptedTermsAndConditions: acceptedTermsAndConditions as TermsAcceptanceOption,
+    };
 
-      localStorage.setItem('rv_attendee_full_data', JSON.stringify(fullDataPayload));
-      localStorage.setItem('rv_user_fullname', fullName.trim());
-      localStorage.setItem('rv_user_phone', phone.trim());
-      localStorage.setItem('rv_user_email', email.trim());
-      localStorage.setItem('rv_last_code', code.trim());
-      localStorage.setItem('rv_last_date', new Date().toLocaleDateString('es-CO'));
-      setHasPreviousData(true);
-    } catch {
-      // Ignorar fallback
-    }
+    registerAsistenciaSync(fullDataPayload);
+    setHasPreviousData(true);
 
     setErrorMessage('');
     setStep(3);
