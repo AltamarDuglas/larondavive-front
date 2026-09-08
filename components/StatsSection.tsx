@@ -11,7 +11,7 @@ export default function StatsSection() {
         <p className="eyebrow">Encuentro Ciudadano</p>
         <h2>Nuestra Comunidad en Cifras</h2>
         <p className="lede">
-          Cada fin de semana miles de monterianos se conectan en la Calle 27 con Avenida Primera.
+          Cada fin de semana cientos de monterianos se conectan en la Calle 27 con Avenida Primera.
         </p>
       </div>
 

@@ -2,51 +2,37 @@
 
 /**
  * Importaciones de React y Next.js.
- * - Link: Enrutamiento del cliente de Next.js sin recargar la página.
  * - Image: Renderizado optimizado del banner institucional de la Alcaldía de Montería.
- * - alcaldiaBanner: Imagen del banner oficial almacenada en app/imgs/alcaldia-banner.png.
+ * - alcaldiaBanner: Imagen oficial almacenada en app/imgs/alcaldia-banner.png.
  */
-import Link from 'next/link';
 import Image from 'next/image';
 import alcaldiaBanner from '../app/imgs/alcaldia-banner.png';
 
-/**
- * Interfaz de propiedades para HeaderNav.
- * Principio de Inversión de Dependencias (DIP).
- */
 export interface HeaderNavProps {
-  /** Callback opcional para volver a reproducir la presentación introductoria */
+  /**
+   * Callback opcional para reiniciar la animación intro.
+   */
   onReplayIntro?: () => void;
 }
 
 /**
- * Componente HeaderNav (Con Banner de la Alcaldía)
- * Responsabilidad Única (SRP): Renderizar el encabezado con la imagen oficial del banner
- * de la Alcaldía de Montería en lugar del texto simple.
+ * Componente HeaderNav (Versión Limpia Institucional)
+ * Responsabilidad Única (SRP): Presentar el banner oficial de la Alcaldía de Montería
+ * en la cabecera sin enlaces ni elementos redundantes.
  */
 export default function HeaderNav({ onReplayIntro }: HeaderNavProps) {
   return (
-    <header className="site-header" aria-label="Navegación oficial de La Ronda Vive">
+    <header className="site-header" aria-label="Cabecera oficial de la Alcaldía de Montería">
       <div className="site-header__inner">
-        {/* Marca oficial con la imagen del banner de la Alcaldía de Montería */}
-        <Link href="/" className="site-header__brand" aria-label="Ir al inicio de Ronda Vive">
+        <div className="site-header__brand">
           <Image
             src={alcaldiaBanner}
             alt="Alcaldía de Montería"
-            height={36}
+            height={52}
             priority
             className="brand-banner-img"
           />
-          <span className="brand-divider">|</span>
-        </Link>
-
-        {/* Menú de navegación sobrio y compacto */}
-        <nav className="site-header__nav" aria-label="Enlaces principales">
-
-
-
-
-        </nav>
+        </div>
       </div>
     </header>
   );
