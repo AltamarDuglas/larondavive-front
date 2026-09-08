@@ -1,5 +1,7 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import * as XLSX from 'xlsx';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import { RegistrationFormData } from '../types/registration';
 
 /**
@@ -105,7 +107,7 @@ export async function signInAdmin(emailInput: string, passwordInput: string): Pr
 
   return {
     success: false,
-    error: 'Credenciales inválidas. Por favor verifica tu correo institucional y contraseña.',
+    error: 'Credenciales no autorizadas. Verifica tu correo institucional y contraseña.',
   };
 }
 
@@ -210,7 +212,6 @@ export async function registerAsistenciaSync(
   formData: RegistrationFormData & { code: string }
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    // 1. Guardado en localStorage para reconocimiento instantáneo en el dispositivo del ciudadano
     if (typeof window !== 'undefined') {
       localStorage.setItem('rv_attendee_full_data', JSON.stringify(formData));
       localStorage.setItem('rv_user_fullname', formData.fullName);
@@ -225,7 +226,6 @@ export async function registerAsistenciaSync(
       localStorage.setItem('rv_local_attendance_logs', JSON.stringify(logs));
     }
 
-    // 2. Envío directo a Supabase
     if (supabase) {
       const { data: asistente, error: asistenteErr } = await supabase
         .from('asistentes')
@@ -292,7 +292,6 @@ export async function getAsistentes(): Promise<AsistenteRecord[]> {
     }
   }
 
-  // Fallback local
   if (typeof window !== 'undefined') {
     const logsRaw = localStorage.getItem('rv_local_attendance_logs');
     if (logsRaw) {
@@ -349,20 +348,18 @@ export async function getAsistencias(): Promise<AsistenciaRecord[]> {
 }
 
 /**
- * Obtener métricas e indicadores 100% reales desde Supabase PostgreSQL.
+ * Obtener métricas e indicadores 100% reales desde Supabase PostgreSQL (con análisis demográfico enriquecido).
  */
 export async function getAdminMetrics() {
   const jornadas = await getJornadas();
   const asistentes = await getAsistentes();
   const asistencias = await getAsistencias();
 
-  // Conteo de ciudadanos registrados en la base de datos
   const totalCiudadanos = asistentes.length;
-  // Conteo de asistencias acumuladas (o 1 por asistente registrado si no hay asistencias históricas)
   const asistenciasAcumuladas = asistencias.length || totalCiudadanos;
   const confirmacionesQr = '100%';
 
-  // Cálculo en vivo de la Tasa de Retorno Recurrente (asistentes con 2 o más registros)
+  // Cálculo en vivo de la Tasa de Retorno Recurrente
   const attendeeCounts: Record<string, number> = {};
   asistencias.forEach((row) => {
     if (row.asistente_id) {
@@ -374,13 +371,58 @@ export async function getAdminMetrics() {
   const tasaRetornoNumber = totalCiudadanos > 0 ? (recurringCount / totalCiudadanos) * 100 : 0;
   const tasaRetorno = `${tasaRetornoNumber.toFixed(1)}%`;
 
-  // Desglose de comunas 100% real basado en las filas de asistentes
-  const comunaCounts: Record<string, number> = {};
+  // Desglose demográfico real: Rangos de Edad
+  const ageBreakdown: Record<string, number> = {
+    '18 a 28 años': 0,
+    '29 a 40 años': 0,
+    '41 a 59 años': 0,
+    '60 a 69 años': 0,
+    '70 años o más': 0,
+  };
+
+  // Desglose demográfico real: Género
+  const genderBreakdown: Record<string, number> = {
+    Femenino: 0,
+    Masculino: 0,
+    OSIGD: 0,
+    'Prefiero no responder': 0,
+  };
+
+  // Desglose por Zona (Urbana vs Rural)
+  const zoneBreakdown: Record<string, number> = {
+    Urbana: 0,
+    Rural: 0,
+  };
+
+  // Ranking de Barrios Top
+  const barrioCounts: Record<string, number> = {};
+
+  // Grupos de Especial Protección / Sociales
+  const socialGroupCounts: Record<string, number> = {};
+
   asistentes.forEach((a) => {
-    if (a.comuna) {
-      comunaCounts[a.comuna] = (comunaCounts[a.comuna] || 0) + 1;
+    if (a.age_range) {
+      ageBreakdown[a.age_range] = (ageBreakdown[a.age_range] || 0) + 1;
+    }
+    if (a.gender_identity) {
+      genderBreakdown[a.gender_identity] = (genderBreakdown[a.gender_identity] || 0) + 1;
+    }
+    if (a.zone) {
+      zoneBreakdown[a.zone] = (zoneBreakdown[a.zone] || 0) + 1;
+    }
+    if (a.barrio) {
+      barrioCounts[a.barrio] = (barrioCounts[a.barrio] || 0) + 1;
+    }
+    if (a.social_group) {
+      socialGroupCounts[a.social_group] = (socialGroupCounts[a.social_group] || 0) + 1;
     }
   });
+
+  // Ordenar barrios Top 10
+  const topBarrios = Object.entries(barrioCounts)
+    .map(([name, count]) => ({ name, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 10);
 
   return {
     totalCiudadanos,
@@ -388,7 +430,11 @@ export async function getAdminMetrics() {
     confirmacionesQr,
     tasaRetorno,
     totalJornadas: jornadas.length,
-    comunaCounts,
+    ageBreakdown,
+    genderBreakdown,
+    zoneBreakdown,
+    topBarrios,
+    socialGroupCounts,
     jornadas,
     asistentes,
     asistencias,
@@ -424,20 +470,147 @@ export function exportToExcel(asistentes: AsistenteRecord[], filename?: string):
     'Fecha de Registro': a.created_at ? new Date(a.created_at).toLocaleString('es-CO') : new Date().toLocaleString('es-CO'),
   }));
 
-  // Crear hoja de trabajo (Worksheet)
   const worksheet = XLSX.utils.json_to_sheet(excelRows);
 
-  // Auto-ajustar ancho de columnas
   const columnWidths = Object.keys(excelRows[0]).map((key) => ({
     wch: Math.max(key.length + 4, 16),
   }));
   worksheet['!cols'] = columnWidths;
 
-  // Crear libro de trabajo (Workbook)
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, worksheet, 'Asistentes Ronda Vive');
 
-  // Guardar y descargar archivo nativo .xlsx
   const defaultName = `Reporte_Oficial_Asistentes_RondaVive_Monteria_${new Date().toISOString().split('T')[0]}.xlsx`;
   XLSX.writeFile(workbook, filename || defaultName);
+}
+
+/**
+ * Exportación NATIVA a documento PDF Ejecutivo usando jsPDF & jspdf-autotable.
+ */
+export function exportToPDF(
+  asistentes: AsistenteRecord[],
+  metrics: {
+    totalCiudadanos: number;
+    asistenciasAcumuladas: number;
+    tasaRetorno: string;
+    confirmacionesQr: string;
+  }
+): void {
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+  // Colores Institucionales de Montería
+  const primaryBlue = [37, 99, 235]; // #2563eb
+  const textDark = [15, 23, 42]; // #0f172a
+  const textMuted = [100, 116, 139]; // #64748b
+
+  // 1. Membrete Institucional
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.setTextColor(primaryBlue[0], primaryBlue[1], primaryBlue[2]);
+  doc.text('ALCALDÍA DE MONTERÍA', 14, 16);
+
+  doc.setFontSize(8);
+  doc.setTextColor(textMuted[0], textMuted[1], textMuted[2]);
+  doc.text('SECRETARÍA DE CULTURA • PLAN DE DESARROLLO MUNICIPAL', 14, 20);
+
+  doc.setFontSize(14);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(textDark[0], textDark[1], textDark[2]);
+  doc.text('INFORME EJECUTIVO DE CARACTERIZACIÓN CIUDADANA', 14, 28);
+
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'normal');
+  doc.text(`Ronda Vive Pass • Fecha de Emisión: ${new Date().toLocaleDateString('es-CO')}`, 14, 34);
+
+  // Línea divisoria
+  doc.setDrawColor(226, 232, 240);
+  doc.setLineWidth(0.5);
+  doc.line(14, 37, 196, 37);
+
+  // 2. Resumen de Indicadores Clave (KPIs)
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(primaryBlue[0], primaryBlue[1], primaryBlue[2]);
+  doc.text('1. RESUMEN DE INDICADORES CLAVE', 14, 44);
+
+  const kpiData = [
+    [
+      `Ciudadanos Caracterizados: ${metrics.totalCiudadanos}`,
+      `Asistencias Acumuladas: ${metrics.asistenciasAcumuladas}`,
+    ],
+    [
+      `Confirmación por QR: ${metrics.confirmacionesQr}`,
+      `Tasa de Retorno Recurrente: ${metrics.tasaRetorno}`,
+    ],
+  ];
+
+  autoTable(doc, {
+    startY: 47,
+    body: kpiData,
+    theme: 'plain',
+    styles: { fontSize: 9, cellPadding: 2, fontStyle: 'bold' },
+    margin: { left: 14, right: 14 },
+  });
+
+  // 3. Tabla de Directorio de Asistentes
+  const currentY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 8;
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(primaryBlue[0], primaryBlue[1], primaryBlue[2]);
+  doc.text('2. DIRECTORIO DE CIUDADANOS CARACTERIZADOS', 14, currentY);
+
+  const tableHeaders = [
+    'No.',
+    'Nombre Completo',
+    'Teléfono',
+    'Correo Electrónico',
+    'Comuna',
+    'Barrio',
+    'Edad',
+    'Género',
+  ];
+
+  const tableRows = asistentes.map((a, index) => [
+    (index + 1).toString(),
+    a.full_name,
+    a.phone,
+    a.email,
+    a.comuna,
+    a.barrio,
+    a.age_range.replace(' años', '').replace(' o más', '+'),
+    a.gender_identity,
+  ]);
+
+  autoTable(doc, {
+    startY: currentY + 3,
+    head: [tableHeaders],
+    body: tableRows,
+    theme: 'striped',
+    headStyles: {
+      fillColor: primaryBlue as [number, number, number],
+      textColor: [255, 255, 255],
+      fontStyle: 'bold',
+      fontSize: 8,
+    },
+    bodyStyles: { fontSize: 7, textColor: textDark as [number, number, number] },
+    alternateRowStyles: { fillColor: [248, 250, 252] },
+    margin: { left: 14, right: 14 },
+  });
+
+  // Pie de página institucional
+  const pageCount = doc.getNumberOfPages();
+  for (let i = 1; i <= pageCount; i++) {
+    doc.setPage(i);
+    doc.setFontSize(7);
+    doc.setTextColor(148, 163, 184);
+    doc.text(
+      `Alcaldía de Montería • Calle 27 con Avenida Primera • Página ${i} de ${pageCount}`,
+      105,
+      290,
+      { align: 'center' }
+    );
+  }
+
+  const fileName = `Informe_Ejecutivo_RondaVive_Monteria_${new Date().toISOString().split('T')[0]}.pdf`;
+  doc.save(fileName);
 }

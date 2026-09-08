@@ -14,6 +14,7 @@ export interface AdminQrModalProps {
 
 /**
  * Modal e Impresor de Códigos QR Oficiales para Pendón de la Alcaldía de Montería.
+ * Estética sobria e institucional sin emojis.
  */
 export default function AdminQrModal({ jornada, isOpen, onClose }: AdminQrModalProps) {
   const [qrUrl, setQrUrl] = useState<string>('');
@@ -22,7 +23,6 @@ export default function AdminQrModal({ jornada, isOpen, onClose }: AdminQrModalP
     if (jornada) {
       const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://ronda-vive.vercel.app';
       const targetUrl = `${baseUrl}/register?code=${jornada.code}`;
-      // Usar API generadora de QR estandarizada
       const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(targetUrl)}&color=0f172a&bgcolor=ffffff`;
       setQrUrl(qrApiUrl);
     }
@@ -51,7 +51,9 @@ export default function AdminQrModal({ jornada, isOpen, onClose }: AdminQrModalP
             <h3>Pendón Oficial de Registro QR</h3>
           </div>
           <button type="button" className="admin-modal-close" onClick={onClose}>
-            ✕
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <path d="M18 6L6 18M6 6l12 12" />
+            </svg>
           </button>
         </div>
 
@@ -80,9 +82,9 @@ export default function AdminQrModal({ jornada, isOpen, onClose }: AdminQrModalP
 
           <div className="qr-poster-body">
             <h3>{jornada.title}</h3>
-            <p className="poster-location">📍 {jornada.location}</p>
+            <p className="poster-location">Ubicación: {jornada.location}</p>
             <p className="poster-instructions">
-              📱 <strong>Escanea con la cámara de tu celular</strong> para confirmar tu presencia en la jornada de hoy.
+              <strong>Escanea con la cámara de tu celular</strong> para confirmar tu presencia en la jornada de hoy.
             </p>
             <div className="poster-link-box">
               <span>{registerUrl}</span>
@@ -95,7 +97,11 @@ export default function AdminQrModal({ jornada, isOpen, onClose }: AdminQrModalP
             Cerrar
           </button>
           <button type="button" className="clean-btn clean-btn--primary" onClick={handlePrint}>
-            🖨️ Imprimir Pendón QR
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '6px' }}>
+              <path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2" />
+              <path d="M6 14h12v8H6z" />
+            </svg>
+            Imprimir Pendón QR
           </button>
         </div>
       </div>

@@ -17,13 +17,19 @@ export interface AdminJornadaModalProps {
 
 /**
  * Modal para la creación de nuevas Jornadas Institucionales (Alcaldía de Montería).
+ * Estética institucional sobria (Sin emojis, usando íconos vectoriales SVG).
  */
 export default function AdminJornadaModal({
   isOpen,
   onClose,
   onJornadaCreated,
 }: AdminJornadaModalProps) {
-  const [code, setCode] = useState<string>('RV-' + new Date().getDate().toString().padStart(2, '0') + (new Date().getMonth() + 1).toString().padStart(2, '0') + new Date().getFullYear().toString().slice(-2));
+  const [code, setCode] = useState<string>(
+    'RV-' +
+      new Date().getDate().toString().padStart(2, '0') +
+      (new Date().getMonth() + 1).toString().padStart(2, '0') +
+      new Date().getFullYear().toString().slice(-2)
+  );
   const [title, setTitle] = useState<string>('Jornada Ronda Vive Calle 27');
   const [location, setLocation] = useState<string>('Calle 27 con Avenida Primera, Montería');
   const [eventDate, setEventDate] = useState<string>(new Date().toISOString().split('T')[0]);
@@ -67,7 +73,9 @@ export default function AdminJornadaModal({
             <h3 id="modal-title">Crear Nueva Jornada Oficial</h3>
           </div>
           <button type="button" className="admin-modal-close" onClick={onClose}>
-            ✕
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <path d="M18 6L6 18M6 6l12 12" />
+            </svg>
           </button>
         </div>
 
@@ -129,9 +137,9 @@ export default function AdminJornadaModal({
                 onChange={(e) => setStatus(e.target.value as 'activa' | 'programada' | 'finalizada')}
                 className="clean-input"
               >
-                <option value="activa">🟢 Activa (Acepta registros)</option>
-                <option value="programada">🟡 Programada</option>
-                <option value="finalizada">⚪ Finalizada</option>
+                <option value="activa">Activa (Acepta registros)</option>
+                <option value="programada">Programada</option>
+                <option value="finalizada">Finalizada</option>
               </select>
             </div>
           </div>
@@ -150,7 +158,7 @@ export default function AdminJornadaModal({
               className="clean-btn clean-btn--primary"
               disabled={isSubmitting}
             >
-              {isSubmitting ? 'Guardando en Supabase...' : '💾 Crear Jornada'}
+              {isSubmitting ? 'Guardando...' : 'Crear Jornada'}
             </button>
           </div>
         </form>

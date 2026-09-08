@@ -8,7 +8,7 @@ import HeaderNav from '../../components/HeaderNav';
 import Footer from '../../components/Footer';
 
 /**
- * Importación de utilidades, exportación a Excel y clientes de Supabase.
+ * Importación de utilidades, exportación a PDF/Excel y clientes de Supabase.
  */
 import {
   getAdminMetrics,
@@ -16,6 +16,7 @@ import {
   signInAdmin,
   signOutAdmin,
   exportToExcel,
+  exportToPDF,
   isSupabaseConfigured,
   JornadaRecord,
   AsistenteRecord,
@@ -29,7 +30,8 @@ import AdminQrModal from '../../components/admin/AdminQrModal';
 
 /**
  * Componente principal del Panel de Administración (/admin)
- * Exige Inicio de Sesión Institucional (Usuario y Contraseña) y consulta datos 100% reales desde Supabase.
+ * Estética institucional sobria (Sin emojis, usando íconos vectoriales SVG)
+ * Analítica rica: Edad, Género, Zona, Grupos Sociales, Ranking Top Barrios y Exportación a PDF/Excel.
  */
 export default function AdminPage() {
   // Estado de autenticación del administrador
@@ -40,10 +42,15 @@ export default function AdminPage() {
   const [isLoggingIn, setIsLoggingIn] = useState<boolean>(false);
 
   // Estados del panel de control
-  const [activeTab, setActiveTab] = useState<'metrics' | 'jornadas' | 'asistentes'>('metrics');
+  const [activeTab, setActiveTab] = useState<'analytics' | 'jornadas' | 'asistentes'>('analytics');
   const [jornadas, setJornadas] = useState<JornadaRecord[]>([]);
   const [asistentes, setAsistentes] = useState<AsistenteRecord[]>([]);
-  const [comunaBreakdown, setComunaBreakdown] = useState<Record<string, number>>({});
+  const [ageBreakdown, setAgeBreakdown] = useState<Record<string, number>>({});
+  const [genderBreakdown, setGenderBreakdown] = useState<Record<string, number>>({});
+  const [zoneBreakdown, setZoneBreakdown] = useState<Record<string, number>>({});
+  const [socialGroupCounts, setSocialGroupCounts] = useState<Record<string, number>>({});
+  const [topBarrios, setTopBarrios] = useState<{ name: string; count: number }[]>([]);
+
   const [metricsSummary, setMetricsSummary] = useState({
     totalCiudadanos: 0,
     asistenciasAcumuladas: 0,
@@ -80,7 +87,12 @@ export default function AdminPage() {
       const data = await getAdminMetrics();
       setJornadas(data.jornadas);
       setAsistentes(data.asistentes);
-      setComunaBreakdown(data.comunaCounts);
+      setAgeBreakdown(data.ageBreakdown);
+      setGenderBreakdown(data.genderBreakdown);
+      setZoneBreakdown(data.zoneBreakdown);
+      setTopBarrios(data.topBarrios);
+      setSocialGroupCounts(data.socialGroupCounts);
+
       setMetricsSummary({
         totalCiudadanos: data.totalCiudadanos,
         asistenciasAcumuladas: data.asistenciasAcumuladas,
@@ -102,7 +114,7 @@ export default function AdminPage() {
     setLoginError('');
 
     if (!emailInput.trim() || !passwordInput.trim()) {
-      setLoginError('Por favor ingresa usuario/correo y contraseña.');
+      setLoginError('Por favor ingresa correo institucional y contraseña.');
       return;
     }
 
@@ -154,15 +166,16 @@ export default function AdminPage() {
   });
 
   /**
-   * Exportación nativa a Microsoft Excel (.xlsx)
+   * Exportaciones a PDF, Excel y CSV
    */
+  const handleExportPDF = () => {
+    exportToPDF(asistentes, metricsSummary);
+  };
+
   const handleExportExcel = () => {
     exportToExcel(asistentes);
   };
 
-  /**
-   * Exportación de asistentes a formato CSV (con BOM UTF-8)
-   */
   const exportToCSV = () => {
     if (asistentes.length === 0) return;
 
@@ -241,13 +254,13 @@ export default function AdminPage() {
                 <span className="eyebrow">Alcaldía de Montería • Secretaría de Cultura</span>
                 <h2>Acceso Administrativo Institucional</h2>
                 <p className="lede">
-                  Ingresa tus credenciales autorizadas de funcionario para gestionar las jornadas y consultar los datos en vivo de Supabase.
+                  Ingresa las credenciales autorizadas de funcionario para gestionar las jornadas y consultar la analítica en vivo de Supabase.
                 </p>
               </div>
 
               {loginError && (
                 <div className="form-error-alert" role="alert">
-                  <span>⚠️ {loginError}</span>
+                  <span>{loginError}</span>
                 </div>
               )}
 
@@ -261,7 +274,7 @@ export default function AdminPage() {
                     type="email"
                     value={emailInput}
                     onChange={(e) => setEmailInput(e.target.value)}
-                    placeholder="Ej: admin@monteria.gov.co"
+                    placeholder="admin@monteria.gov.co"
                     className="clean-input"
                     required
                     autoFocus
@@ -289,7 +302,7 @@ export default function AdminPage() {
                     className="clean-btn clean-btn--primary clean-btn--lg"
                     disabled={isLoggingIn}
                   >
-                    {isLoggingIn ? 'Verificando con Supabase...' : '🔐 Iniciar Sesión en el Panel'}
+                    {isLoggingIn ? 'Verificando...' : 'Iniciar Sesión en el Panel'}
                   </button>
                 </div>
               </form>
@@ -297,7 +310,7 @@ export default function AdminPage() {
           </div>
         ) : (
           /* ==========================================================================
-             VISTA 2: PANEL DE CONTROL ADMINISTRATIVO (AUTENTICADO)
+             VISTA 2: PANEL DE CONTROL ADMINISTRATIVO (AUTENTICADO Y SOBRIO)
              ========================================================================== */
           <div className="admin-container">
             {/* Encabezado Principal del Panel */}
@@ -307,16 +320,16 @@ export default function AdminPage() {
                   <span className="eyebrow">Alcaldía de Montería • Secretaría de Cultura</span>
                   <h1>Panel de Control Institucional</h1>
                   <p className="lede">
-                    Gestión integral de jornadas, generación de códigos QR y analítica continua de asistencia ciudadana en la Calle 27 con Avenida Primera.
+                    Gestión de jornadas, caracterización ciudadana y analítica continua en la Calle 27 con Avenida Primera.
                   </p>
                 </div>
 
                 <div className="admin-status-pill-box" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                   <span className={`connection-status-pill ${isSupabaseConfigured ? 'is-connected' : 'is-local'}`}>
-                    {isSupabaseConfigured ? '🟢 Conectado a Supabase' : '🟡 Modo Local'}
+                    {isSupabaseConfigured ? 'Conectado a Supabase' : 'Modo Local'}
                   </span>
                   <button type="button" className="btn-logout" onClick={handleLogout} title="Cerrar sesión">
-                    🔒 Cerrar Sesión
+                    Cerrar Sesión
                   </button>
                 </div>
               </div>
@@ -327,16 +340,36 @@ export default function AdminPage() {
                   className="clean-btn clean-btn--primary"
                   onClick={() => setIsJornadaModalOpen(true)}
                 >
-                  ➕ Crear Nueva Jornada
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ marginRight: '6px' }}>
+                    <path d="M12 5v14M5 12h14" />
+                  </svg>
+                  Crear Nueva Jornada
+                </button>
+
+                <button
+                  type="button"
+                  className="clean-btn clean-btn--pdf"
+                  onClick={handleExportPDF}
+                  title="Generar y descargar Informe Ejecutivo en PDF"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '6px' }}>
+                    <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+                    <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" />
+                  </svg>
+                  Exportar PDF
                 </button>
 
                 <button
                   type="button"
                   className="clean-btn clean-btn--excel"
                   onClick={handleExportExcel}
-                  title="Descargar archivo verdaderamente nativo de Excel (.xlsx)"
+                  title="Descargar archivo nativo de Excel (.xlsx)"
                 >
-                  💚 Exportar Excel (.xlsx)
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '6px' }}>
+                    <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+                    <path d="M8 13l8 6M16 13l-8 6" />
+                  </svg>
+                  Exportar Excel (.xlsx)
                 </button>
 
                 <button
@@ -344,7 +377,7 @@ export default function AdminPage() {
                   className="clean-btn clean-btn--secondary"
                   onClick={exportToCSV}
                 >
-                  📊 CSV ({asistentes.length})
+                  CSV ({asistentes.length})
                 </button>
               </div>
             </section>
@@ -352,7 +385,13 @@ export default function AdminPage() {
             {/* Tarjetas de Métricas Principales (KPIs Reales de Supabase) */}
             <section className="admin-metrics-row">
               <article className="admin-metric-card">
-                <span className="metric-icon">👥</span>
+                <div className="metric-icon">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+                    <circle cx="9" cy="7" r="4" />
+                    <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" />
+                  </svg>
+                </div>
                 <div className="metric-info">
                   <span className="metric-label">Ciudadanos Caracterizados</span>
                   <strong className="metric-value">
@@ -362,7 +401,12 @@ export default function AdminPage() {
               </article>
 
               <article className="admin-metric-card">
-                <span className="metric-icon">🎟️</span>
+                <div className="metric-icon">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M9 11l3 3L22 4" />
+                    <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" />
+                  </svg>
+                </div>
                 <div className="metric-info">
                   <span className="metric-label">Asistencias Acumuladas</span>
                   <strong className="metric-value">
@@ -372,7 +416,14 @@ export default function AdminPage() {
               </article>
 
               <article className="admin-metric-card">
-                <span className="metric-icon">📱</span>
+                <div className="metric-icon">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <rect x="3" y="3" width="7" height="7" />
+                    <rect x="14" y="3" width="7" height="7" />
+                    <rect x="14" y="14" width="7" height="7" />
+                    <rect x="3" y="14" width="7" height="7" />
+                  </svg>
+                </div>
                 <div className="metric-info">
                   <span className="metric-label">Confirmación por QR</span>
                   <strong className="metric-value">{metricsSummary.confirmacionesQr}</strong>
@@ -380,7 +431,12 @@ export default function AdminPage() {
               </article>
 
               <article className="admin-metric-card">
-                <span className="metric-icon">🔄</span>
+                <div className="metric-icon">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <polyline points="23 4 23 10 17 10" />
+                    <path d="M20.49 15a9 9 0 11-2.12-9.36L23 10" />
+                  </svg>
+                </div>
                 <div className="metric-info">
                   <span className="metric-label">Tasa de Retorno Recurrente</span>
                   <strong className="metric-value">{metricsSummary.tasaRetorno}</strong>
@@ -392,66 +448,47 @@ export default function AdminPage() {
             <div className="admin-tabs-bar">
               <button
                 type="button"
-                className={`admin-tab-btn ${activeTab === 'metrics' ? 'is-active' : ''}`}
-                onClick={() => setActiveTab('metrics')}
+                className={`admin-tab-btn ${activeTab === 'analytics' ? 'is-active' : ''}`}
+                onClick={() => setActiveTab('analytics')}
               >
-                📊 Indicadores y Comunas Reales
+                Analítica y Caracterización
               </button>
               <button
                 type="button"
                 className={`admin-tab-btn ${activeTab === 'jornadas' ? 'is-active' : ''}`}
                 onClick={() => setActiveTab('jornadas')}
               >
-                📅 Gestión de Jornadas ({jornadas.length})
+                Gestión de Jornadas ({jornadas.length})
               </button>
               <button
                 type="button"
                 className={`admin-tab-btn ${activeTab === 'asistentes' ? 'is-active' : ''}`}
                 onClick={() => setActiveTab('asistentes')}
               >
-                👥 Directorio de Asistentes ({asistentes.length})
+                Directorio de Asistentes ({asistentes.length})
               </button>
             </div>
 
-            {/* PESTAÑA 1: INDICADORES Y DESGLOSE TERRITORIAL REAL */}
-            {activeTab === 'metrics' && (
+            {/* PESTAÑA 1: ANALÍTICA AVANZADA Y CARACTERIZACIÓN DEMOGRÁFICA */}
+            {activeTab === 'analytics' && (
               <section className="admin-tab-content">
                 <div className="admin-grid-2">
+                  {/* 1. RANGOS DE EDAD */}
                   <article className="admin-card">
-                    <h3>Desglose de Participación por Comuna (Datos Reales Supabase)</h3>
-                    <p className="card-desc">
-                      Distribución espacial exacta calculada con las filas de la tabla `asistentes` en Supabase.
-                    </p>
-
-                    <div className="comuna-stats-list">
-                      {[
-                        'Comuna 1',
-                        'Comuna 2',
-                        'Comuna 3',
-                        'Comuna 4',
-                        'Comuna 5',
-                        'Comuna 6',
-                        'Comuna 7',
-                        'Comuna 8',
-                        'Comuna 9',
-                      ].map((comName) => {
-                        const count = comunaBreakdown[comName] || 0;
-                        const maxCount = Math.max(...Object.values(comunaBreakdown), 1);
-                        const percentage = maxCount > 0 ? Math.round((count / maxCount) * 100) : 0;
-
+                    <h3>Distribución por Rango de Edad</h3>
+                    <p className="card-desc">Caracterización etaria de los asistentes caracterizados.</p>
+                    <div className="chart-bar-group">
+                      {Object.entries(ageBreakdown).map(([range, count]) => {
+                        const total = asistentes.length || 1;
+                        const pct = Math.round((count / total) * 100);
                         return (
-                          <div className="comuna-stat-item" key={comName}>
-                            <div className="comuna-stat-head">
-                              <span className="comuna-name">{comName}</span>
-                              <span className="comuna-count">
-                                <strong>{count}</strong> {count === 1 ? 'asistente' : 'asistentes'}
-                              </span>
+                          <div className="chart-bar-item" key={range}>
+                            <div className="chart-bar-label">
+                              <span>{range}</span>
+                              <strong>{count} ({pct}%)</strong>
                             </div>
-                            <div className="comuna-bar-track">
-                              <div
-                                className="comuna-bar-fill"
-                                style={{ width: `${Math.min(100, percentage)}%` }}
-                              />
+                            <div className="chart-bar-track">
+                              <div className="chart-bar-fill fill-blue" style={{ width: `${Math.max(4, pct)}%` }} />
                             </div>
                           </div>
                         );
@@ -459,36 +496,107 @@ export default function AdminPage() {
                     </div>
                   </article>
 
+                  {/* 2. GÉNERO Y ZONA */}
                   <article className="admin-card">
-                    <h3>Resumen de Infraestructura Supabase</h3>
-                    <p className="card-desc">
-                      Estado de la base de datos PostgreSQL conectada a Vercel.
-                    </p>
+                    <h3>Identidad de Género y Zona Territorial</h3>
+                    <p className="card-desc">Proporción por género y cobertura urbana vs rural.</p>
 
-                    <div className="admin-info-box">
-                      <div className="info-row">
-                        <span>Base de Datos:</span>
-                        <strong>Supabase PostgreSQL</strong>
-                      </div>
-                      <div className="info-row">
-                        <span>Tabla Asistentes:</span>
-                        <strong>{asistentes.length} filas</strong>
-                      </div>
-                      <div className="info-row">
-                        <span>Tabla Jornadas:</span>
-                        <strong>{jornadas.length} jornadas</strong>
-                      </div>
-                      <div className="info-row">
-                        <span>Servidor Vercel:</span>
-                        <strong>Conexión Directa Activa</strong>
+                    <div className="analytics-subblock">
+                      <h4>Identidad de Género</h4>
+                      <div className="chart-bar-group">
+                        {Object.entries(genderBreakdown).map(([g, count]) => {
+                          const total = asistentes.length || 1;
+                          const pct = Math.round((count / total) * 100);
+                          return (
+                            <div className="chart-bar-item" key={g}>
+                              <div className="chart-bar-label">
+                                <span>{g}</span>
+                                <strong>{count} ({pct}%)</strong>
+                              </div>
+                              <div className="chart-bar-track">
+                                <div className="chart-bar-fill fill-red" style={{ width: `${Math.max(4, pct)}%` }} />
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
 
-                    <div className="admin-notice-box">
-                      <h4>💡 Protección de Información</h4>
-                      <p>
-                        Todos los registros están protegidos conforme a la Ley 1581 de Habeas Data y el Manual de Portafolio de Estímulos 2026 de la Alcaldía de Montería.
-                      </p>
+                    <div className="analytics-subblock" style={{ marginTop: '16px' }}>
+                      <h4>Zona Territorial</h4>
+                      <div className="chart-bar-group">
+                        {Object.entries(zoneBreakdown).map(([z, count]) => {
+                          const total = asistentes.length || 1;
+                          const pct = Math.round((count / total) * 100);
+                          return (
+                            <div className="chart-bar-item" key={z}>
+                              <div className="chart-bar-label">
+                                <span>Zona {z}</span>
+                                <strong>{count} ({pct}%)</strong>
+                              </div>
+                              <div className="chart-bar-track">
+                                <div className="chart-bar-fill fill-dark" style={{ width: `${Math.max(4, pct)}%` }} />
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </article>
+                </div>
+
+                <div className="admin-grid-2" style={{ marginTop: '20px' }}>
+                  {/* 3. TOP BARRIOS DE MONTERÍA */}
+                  <article className="admin-card">
+                    <h3>Top Barrios de Mayor Participación en Montería</h3>
+                    <p className="card-desc">Ranking real de sectores urbanos con mayor concentración.</p>
+                    <div className="chart-bar-group">
+                      {topBarrios.length === 0 ? (
+                        <div className="empty-state">No hay registros de barrios suficientes.</div>
+                      ) : (
+                        topBarrios.map((b, idx) => {
+                          const max = topBarrios[0]?.count || 1;
+                          const pct = Math.round((b.count / max) * 100);
+                          return (
+                            <div className="chart-bar-item" key={b.name}>
+                              <div className="chart-bar-label">
+                                <span>{idx + 1}. {b.name}</span>
+                                <strong>{b.count} registros</strong>
+                              </div>
+                              <div className="chart-bar-track">
+                                <div className="chart-bar-fill fill-blue" style={{ width: `${Math.max(4, pct)}%` }} />
+                              </div>
+                            </div>
+                          );
+                        })
+                      )}
+                    </div>
+                  </article>
+
+                  {/* 4. GRUPOS DE PROTECCIÓN ESPECIAL */}
+                  <article className="admin-card">
+                    <h3>Grupos Sociales y Protección Especial</h3>
+                    <p className="card-desc">Autorreconocimiento e inclusión de sectores priorizados.</p>
+                    <div className="chart-bar-group">
+                      {Object.entries(socialGroupCounts).length === 0 ? (
+                        <div className="empty-state">No hay registros poblacionales.</div>
+                      ) : (
+                        Object.entries(socialGroupCounts).map(([sg, count]) => {
+                          const total = asistentes.length || 1;
+                          const pct = Math.round((count / total) * 100);
+                          return (
+                            <div className="chart-bar-item" key={sg}>
+                              <div className="chart-bar-label">
+                                <span>{sg}</span>
+                                <strong>{count} ({pct}%)</strong>
+                              </div>
+                              <div className="chart-bar-track">
+                                <div className="chart-bar-fill fill-red" style={{ width: `${Math.max(4, pct)}%` }} />
+                              </div>
+                            </div>
+                          );
+                        })
+                      )}
                     </div>
                   </article>
                 </div>
@@ -511,7 +619,7 @@ export default function AdminPage() {
                       className="clean-btn clean-btn--primary"
                       onClick={() => setIsJornadaModalOpen(true)}
                     >
-                      ➕ Crear Jornada
+                      Crear Jornada
                     </button>
                   </div>
 
@@ -537,10 +645,10 @@ export default function AdminPage() {
                             <td>
                               <span className={`status-badge status-${j.status}`}>
                                 {j.status === 'activa'
-                                  ? '🟢 Activa'
+                                  ? 'Activa'
                                   : j.status === 'programada'
-                                  ? '🟡 Programada'
-                                  : '⚪ Finalizada'}
+                                  ? 'Programada'
+                                  : 'Finalizada'}
                               </span>
                             </td>
                             <td>
@@ -549,7 +657,7 @@ export default function AdminPage() {
                                 className="btn-table-action"
                                 onClick={() => setSelectedQrJornada(j)}
                               >
-                                📱 Ver/Imprimir QR
+                                Ver/Imprimir QR
                               </button>
                             </td>
                           </tr>
@@ -561,7 +669,7 @@ export default function AdminPage() {
               </section>
             )}
 
-            {/* PESTAÑA 3: DIRECTORIO DE ASISTENTES Y EXPORTACIÓN EXCEL/CSV */}
+            {/* PESTAÑA 3: DIRECTORIO DE ASISTENTES Y EXPORTACIÓN */}
             {activeTab === 'asistentes' && (
               <section className="admin-tab-content">
                 <div className="admin-card">
@@ -572,13 +680,21 @@ export default function AdminPage() {
                         Filtra y exporta los asistentes caracterizados en las jornadas de Ronda Vive.
                       </p>
                     </div>
-                    <div style={{ display: 'flex', gap: '8px' }}>
+                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                      <button
+                        type="button"
+                        className="clean-btn clean-btn--pdf"
+                        onClick={handleExportPDF}
+                      >
+                        Exportar PDF
+                      </button>
+
                       <button
                         type="button"
                         className="clean-btn clean-btn--excel"
                         onClick={handleExportExcel}
                       >
-                        💚 Descargar Excel (.xlsx)
+                        Descargar Excel (.xlsx)
                       </button>
 
                       <button
@@ -586,7 +702,7 @@ export default function AdminPage() {
                         className="clean-btn clean-btn--secondary"
                         onClick={exportToCSV}
                       >
-                        📥 Descargar CSV
+                        Descargar CSV
                       </button>
                     </div>
                   </div>
@@ -596,7 +712,7 @@ export default function AdminPage() {
                     <div className="filter-item filter-search">
                       <input
                         type="text"
-                        placeholder="🔍 Buscar por nombre, teléfono, correo o barrio..."
+                        placeholder="Buscar por nombre, teléfono, correo o barrio..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         className="clean-input"
@@ -654,8 +770,8 @@ export default function AdminPage() {
                               </td>
                               <td>
                                 <div className="cell-contact">
-                                  <span>📱 {a.phone}</span>
-                                  <span>✉️ {a.email}</span>
+                                  <span>{a.phone}</span>
+                                  <span>{a.email}</span>
                                 </div>
                               </td>
                               <td>
@@ -677,7 +793,7 @@ export default function AdminPage() {
                                 </div>
                               </td>
                               <td>
-                                <span className="legal-badge">✓ Habeas Data</span>
+                                <span className="legal-badge">Habeas Data</span>
                               </td>
                             </tr>
                           ))}

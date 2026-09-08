@@ -2640,3 +2640,92 @@ button.step-pill {
   background: var(--monteria-red);
   color: #ffffff;
 }
+
+/* Botón de Exportación Rojo PDF */
+.clean-btn--pdf {
+  background: #dc2626;
+  color: #ffffff;
+  box-shadow: 0 6px 18px rgba(220, 38, 38, 0.25);
+}
+
+.clean-btn--pdf:hover {
+  background: #b91c1c;
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(220, 38, 38, 0.35);
+}
+
+/* Estilos de Gráficas Analíticas Avanzadas */
+.admin-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+@media (max-width: 768px) {
+  .admin-grid-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+.chart-bar-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.chart-bar-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.chart-bar-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+}
+
+.chart-bar-label span {
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.chart-bar-label strong {
+  font-weight: 800;
+  color: var(--text-muted);
+}
+
+.chart-bar-track {
+  height: 9px;
+  border-radius: 999px;
+  background: #f1f5f9;
+  overflow: hidden;
+}
+
+.chart-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 400ms ease;
+}
+
+.fill-blue {
+  background: linear-gradient(90deg, #2563eb, #3b82f6);
+}
+
+.fill-red {
+  background: linear-gradient(90deg, #dc2626, #ef4444);
+}
+
+.fill-dark {
+  background: linear-gradient(90deg, #0f172a, #334155);
+}
+
+.analytics-subblock h4 {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--text-subtle);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0 0 8px;
+}
