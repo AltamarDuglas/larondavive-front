@@ -2131,8 +2131,16 @@ button.step-pill {
 
 .admin-header-actions {
   display: flex;
-  gap: 12px;
-  max-width: 480px;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.admin-header-actions .clean-btn {
+  width: auto;
+  min-height: 42px;
+  padding: 8px 18px;
+  font-size: 0.88rem;
 }
 
 .admin-metrics-row {
@@ -2408,6 +2416,87 @@ button.step-pill {
 .filter-search {
   flex: 1;
   min-width: 260px;
+}
+
+/* Estilos para celdas del directorio de asistentes */
+.cell-user,
+.cell-contact,
+.cell-location,
+.cell-demo,
+.cell-population {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  line-height: 1.35;
+}
+
+.cell-user strong,
+.cell-location strong {
+  font-weight: 800;
+  color: var(--text-main);
+  font-size: 0.9rem;
+  display: block;
+}
+
+.cell-user small,
+.cell-location small,
+.cell-demo small,
+.cell-population small {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-weight: 500;
+  display: block;
+}
+
+.cell-contact span {
+  display: block;
+  font-size: 0.84rem;
+  color: var(--text-main);
+}
+
+.cell-contact span:first-child {
+  font-weight: 700;
+}
+
+.cell-contact span:last-child {
+  color: var(--monteria-blue-dark);
+  font-size: 0.8rem;
+}
+
+.cell-demo span,
+.cell-population span {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-main);
+  display: block;
+}
+
+.legal-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(34, 197, 94, 0.1);
+  color: #15803d;
+  font-size: 0.78rem;
+  font-weight: 800;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  white-space: nowrap;
+}
+
+.admin-export-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.admin-export-actions .clean-btn {
+  width: auto;
+  min-height: 42px;
+  padding: 8px 16px;
+  font-size: 0.86rem;
 }
 
 /* Modales Administrativos */

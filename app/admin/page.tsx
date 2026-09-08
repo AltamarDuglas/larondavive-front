@@ -680,7 +680,7 @@ export default function AdminPage() {
                         Filtra y exporta los asistentes caracterizados en las jornadas de Ronda Vive.
                       </p>
                     </div>
-                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                    <div className="admin-header-actions">
                       <button
                         type="button"
                         className="clean-btn clean-btn--pdf"
