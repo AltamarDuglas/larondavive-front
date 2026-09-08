@@ -485,7 +485,8 @@ export function exportToExcel(asistentes: AsistenteRecord[], filename?: string):
 }
 
 /**
- * Exportación NATIVA a documento PDF Ejecutivo usando jsPDF & jspdf-autotable.
+ * Exportación NATIVA a documento PDF Ejecutivo de Analítica y Caracterización Demográfica.
+ * Diseñado exclusivamente para presentar informe de analítica municipal (sin listado individual de asistentes).
  */
 export function exportToPDF(
   asistentes: AsistenteRecord[],
@@ -498,10 +499,13 @@ export function exportToPDF(
 ): void {
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
 
-  // Colores Institucionales de Montería
-  const primaryBlue = [37, 99, 235]; // #2563eb
-  const textDark = [15, 23, 42]; // #0f172a
-  const textMuted = [100, 116, 139]; // #64748b
+  // Colores Institucionales de Montería (Rojo, Azul, Oscuro)
+  const primaryBlue: [number, number, number] = [37, 99, 235];
+  const primaryRed: [number, number, number] = [220, 38, 38];
+  const textDark: [number, number, number] = [15, 23, 42];
+  const textMuted: [number, number, number] = [100, 116, 139];
+
+  const total = asistentes.length || 1;
 
   // 1. Membrete Institucional
   doc.setFont('helvetica', 'bold');
@@ -513,30 +517,34 @@ export function exportToPDF(
   doc.setTextColor(textMuted[0], textMuted[1], textMuted[2]);
   doc.text('SECRETARÍA DE CULTURA • PLAN DE DESARROLLO MUNICIPAL', 14, 20);
 
-  doc.setFontSize(14);
+  doc.setFontSize(13);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(textDark[0], textDark[1], textDark[2]);
-  doc.text('INFORME EJECUTIVO DE CARACTERIZACIÓN CIUDADANA', 14, 28);
+  doc.text('INFORME DE ANALÍTICA Y CARACTERIZACIÓN CIUDADANA', 14, 28);
 
-  doc.setFontSize(9);
+  doc.setFontSize(8.5);
   doc.setFont('helvetica', 'normal');
-  doc.text(`Ronda Vive Pass • Fecha de Emisión: ${new Date().toLocaleDateString('es-CO')}`, 14, 34);
+  doc.text(
+    `Plataforma Ronda Vive Pass • Calle 27 con Av. Primera • Fecha: ${new Date().toLocaleDateString('es-CO')}`,
+    14,
+    33
+  );
 
-  // Línea divisoria
+  // Línea divisoria decorativa
   doc.setDrawColor(226, 232, 240);
-  doc.setLineWidth(0.5);
-  doc.line(14, 37, 196, 37);
+  doc.setLineWidth(0.6);
+  doc.line(14, 36, 196, 36);
 
   // 2. Resumen de Indicadores Clave (KPIs)
-  doc.setFontSize(10);
+  doc.setFontSize(9.5);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(primaryBlue[0], primaryBlue[1], primaryBlue[2]);
-  doc.text('1. RESUMEN DE INDICADORES CLAVE', 14, 44);
+  doc.text('1. RESUMEN DE INDICADORES CLAVE DE ASISTENCIA', 14, 42);
 
   const kpiData = [
     [
-      `Ciudadanos Caracterizados: ${metrics.totalCiudadanos}`,
-      `Asistencias Acumuladas: ${metrics.asistenciasAcumuladas}`,
+      `Ciudadanos Caracterizados: ${metrics.totalCiudadanos.toLocaleString('es-CO')}`,
+      `Asistencias Acumuladas: ${metrics.asistenciasAcumuladas.toLocaleString('es-CO')}`,
     ],
     [
       `Confirmación por QR: ${metrics.confirmacionesQr}`,
@@ -545,55 +553,110 @@ export function exportToPDF(
   ];
 
   autoTable(doc, {
-    startY: 47,
+    startY: 45,
     body: kpiData,
     theme: 'plain',
-    styles: { fontSize: 9, cellPadding: 2, fontStyle: 'bold' },
+    styles: { fontSize: 8.5, cellPadding: 2.5, fontStyle: 'bold', textColor: textDark },
     margin: { left: 14, right: 14 },
   });
 
-  // 3. Tabla de Directorio de Asistentes
-  const currentY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 8;
-  doc.setFontSize(10);
+  let currentY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 6;
+
+  // 3. Caracterización por Rango de Edad
+  doc.setFontSize(9.5);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(primaryBlue[0], primaryBlue[1], primaryBlue[2]);
-  doc.text('2. DIRECTORIO DE CIUDADANOS CARACTERIZADOS', 14, currentY);
+  doc.text('2. CARACTERIZACIÓN ETARIA (RANGOS DE EDAD)', 14, currentY);
 
-  const tableHeaders = [
-    'No.',
-    'Nombre Completo',
-    'Teléfono',
-    'Correo Electrónico',
-    'Comuna',
-    'Barrio',
-    'Edad',
-    'Género',
-  ];
+  const ageCounts: Record<string, number> = {
+    '18 a 28 años': 0,
+    '29 a 40 años': 0,
+    '41 a 59 años': 0,
+    '60 a 69 años': 0,
+    '70 años o más': 0,
+  };
 
-  const tableRows = asistentes.map((a, index) => [
-    (index + 1).toString(),
-    a.full_name,
-    a.phone,
-    a.email,
-    a.comuna,
-    a.barrio,
-    a.age_range.replace(' años', '').replace(' o más', '+'),
-    a.gender_identity,
+  asistentes.forEach((a) => {
+    if (a.age_range) ageCounts[a.age_range] = (ageCounts[a.age_range] || 0) + 1;
+  });
+
+  const ageRows = Object.entries(ageCounts).map(([range, cnt]) => [
+    range,
+    cnt.toString(),
+    `${((cnt / total) * 100).toFixed(1)}%`,
   ]);
 
   autoTable(doc, {
     startY: currentY + 3,
-    head: [tableHeaders],
-    body: tableRows,
+    head: [['Rango de Edad', 'Total Asistentes', 'Porcentaje del Total']],
+    body: ageRows,
     theme: 'striped',
-    headStyles: {
-      fillColor: primaryBlue as [number, number, number],
-      textColor: [255, 255, 255],
-      fontStyle: 'bold',
-      fontSize: 8,
-    },
-    bodyStyles: { fontSize: 7, textColor: textDark as [number, number, number] },
-    alternateRowStyles: { fillColor: [248, 250, 252] },
+    headStyles: { fillColor: primaryBlue, textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 8 },
+    bodyStyles: { fontSize: 8, textColor: textDark },
+    margin: { left: 14, right: 14 },
+  });
+
+  currentY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 6;
+
+  // 4. Caracterización por Género y Zona Territorial
+  doc.setFontSize(9.5);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(primaryBlue[0], primaryBlue[1], primaryBlue[2]);
+  doc.text('3. GÉNERO Y COBERTURA TERRITORIAL (URBANA / RURAL)', 14, currentY);
+
+  const genderCounts: Record<string, number> = {};
+  const zoneCounts: Record<string, number> = {};
+
+  asistentes.forEach((a) => {
+    if (a.gender_identity) genderCounts[a.gender_identity] = (genderCounts[a.gender_identity] || 0) + 1;
+    if (a.zone) zoneCounts[a.zone] = (zoneCounts[a.zone] || 0) + 1;
+  });
+
+  const genderZoneRows = [
+    ...Object.entries(genderCounts).map(([g, cnt]) => [`Género: ${g}`, cnt.toString(), `${((cnt / total) * 100).toFixed(1)}%`]),
+    ...Object.entries(zoneCounts).map(([z, cnt]) => [`Zona Territorial: ${z}`, cnt.toString(), `${((cnt / total) * 100).toFixed(1)}%`]),
+  ];
+
+  autoTable(doc, {
+    startY: currentY + 3,
+    head: [['Categoría Demográfica', 'Total Asistentes', 'Porcentaje']],
+    body: genderZoneRows,
+    theme: 'striped',
+    headStyles: { fillColor: primaryRed, textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 8 },
+    bodyStyles: { fontSize: 8, textColor: textDark },
+    margin: { left: 14, right: 14 },
+  });
+
+  currentY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 6;
+
+  // 5. Ranking Top Barrios de Montería
+  doc.setFontSize(9.5);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(primaryBlue[0], primaryBlue[1], primaryBlue[2]);
+  doc.text('4. TOP BARRIOS DE MAYOR PARTICIPACIÓN CIUDADANA EN MONTERÍA', 14, currentY);
+
+  const barrioCounts: Record<string, number> = {};
+  asistentes.forEach((a) => {
+    if (a.barrio) barrioCounts[a.barrio] = (barrioCounts[a.barrio] || 0) + 1;
+  });
+
+  const topBarriosRows = Object.entries(barrioCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 8)
+    .map(([barrioName, cnt], idx) => [
+      `${idx + 1}`,
+      barrioName,
+      cnt.toString(),
+      `${((cnt / total) * 100).toFixed(1)}%`,
+    ]);
+
+  autoTable(doc, {
+    startY: currentY + 3,
+    head: [['Posición', 'Barrio / Sector', 'Ciudadanos Caracterizados', 'Porcentaje']],
+    body: topBarriosRows.length > 0 ? topBarriosRows : [['1', 'Sin registros suficientes', '0', '0%']],
+    theme: 'striped',
+    headStyles: { fillColor: primaryBlue, textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 8 },
+    bodyStyles: { fontSize: 8, textColor: textDark },
     margin: { left: 14, right: 14 },
   });
 
@@ -601,16 +664,16 @@ export function exportToPDF(
   const pageCount = doc.getNumberOfPages();
   for (let i = 1; i <= pageCount; i++) {
     doc.setPage(i);
-    doc.setFontSize(7);
+    doc.setFontSize(7.5);
     doc.setTextColor(148, 163, 184);
     doc.text(
-      `Alcaldía de Montería • Calle 27 con Avenida Primera • Página ${i} de ${pageCount}`,
+      `Alcaldía de Montería • Secretaría de Cultura • Informe de Analítica Ronda Vive • Página ${i} de ${pageCount}`,
       105,
       290,
       { align: 'center' }
     );
   }
 
-  const fileName = `Informe_Ejecutivo_RondaVive_Monteria_${new Date().toISOString().split('T')[0]}.pdf`;
+  const fileName = `Informe_Analitica_Caracterizacion_RondaVive_Monteria_${new Date().toISOString().split('T')[0]}.pdf`;
   doc.save(fileName);
 }
