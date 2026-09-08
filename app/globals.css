@@ -2587,3 +2587,56 @@ button.step-pill {
     border: none;
   }
 }
+
+/* Botón de Exportación Verde a Excel (.xlsx) */
+.clean-btn--excel {
+  background: #16a34a;
+  color: #ffffff;
+  box-shadow: 0 6px 18px rgba(22, 163, 74, 0.25);
+}
+
+.clean-btn--excel:hover {
+  background: #15803d;
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(22, 163, 74, 0.35);
+}
+
+/* Formulario de Login del Administrador */
+.admin-login-wrapper {
+  width: min(480px, calc(100% - 32px));
+  margin: 40px auto 60px;
+}
+
+.admin-login-card {
+  box-shadow: var(--shadow-lg);
+  border-radius: 28px;
+}
+
+.admin-login-header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.admin-login-header h2 {
+  font-family: Georgia, serif;
+  font-size: 1.8rem;
+  margin: 4px 0 0;
+}
+
+.btn-logout {
+  background: rgba(220, 38, 38, 0.08);
+  border: 1px solid var(--border-red);
+  color: var(--monteria-red-dark);
+  font-size: 0.8rem;
+  font-weight: 800;
+  padding: 6px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 140ms ease;
+}
+
+.btn-logout:hover {
+  background: var(--monteria-red);
+  color: #ffffff;
+}
