@@ -345,40 +345,6 @@ export default function AdminPage() {
                   </svg>
                   Crear Nueva Jornada
                 </button>
-
-                <button
-                  type="button"
-                  className="clean-btn clean-btn--pdf"
-                  onClick={handleExportPDF}
-                  title="Generar y descargar Informe Ejecutivo en PDF"
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '6px' }}>
-                    <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
-                    <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" />
-                  </svg>
-                  Exportar PDF
-                </button>
-
-                <button
-                  type="button"
-                  className="clean-btn clean-btn--excel"
-                  onClick={handleExportExcel}
-                  title="Descargar archivo nativo de Excel (.xlsx)"
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '6px' }}>
-                    <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
-                    <path d="M8 13l8 6M16 13l-8 6" />
-                  </svg>
-                  Exportar Excel (.xlsx)
-                </button>
-
-                <button
-                  type="button"
-                  className="clean-btn clean-btn--secondary"
-                  onClick={exportToCSV}
-                >
-                  CSV ({asistentes.length})
-                </button>
               </div>
             </section>
 
@@ -472,6 +438,31 @@ export default function AdminPage() {
             {/* PESTAÑA 1: ANALÍTICA AVANZADA Y CARACTERIZACIÓN DEMOGRÁFICA */}
             {activeTab === 'analytics' && (
               <section className="admin-tab-content">
+                <div className="admin-card" style={{ marginBottom: '20px' }}>
+                  <div className="card-header-flex">
+                    <div>
+                      <h3>Analítica y Caracterización Demográfica</h3>
+                      <p className="card-desc">
+                        Reporte institucional de indicadores, rangos de edad, género y sectores de Montería.
+                      </p>
+                    </div>
+                    <div className="admin-header-actions">
+                      <button
+                        type="button"
+                        className="clean-btn clean-btn--pdf"
+                        onClick={handleExportPDF}
+                        title="Generar y descargar Informe Ejecutivo de Analítica en PDF"
+                      >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '6px' }}>
+                          <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+                          <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" />
+                        </svg>
+                        Exportar PDF de Analítica
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
                 <div className="admin-grid-2">
                   {/* 1. RANGOS DE EDAD */}
                   <article className="admin-card">
@@ -681,14 +672,6 @@ export default function AdminPage() {
                       </p>
                     </div>
                     <div className="admin-header-actions">
-                      <button
-                        type="button"
-                        className="clean-btn clean-btn--pdf"
-                        onClick={handleExportPDF}
-                      >
-                        Exportar PDF
-                      </button>
-
                       <button
                         type="button"
                         className="clean-btn clean-btn--excel"
