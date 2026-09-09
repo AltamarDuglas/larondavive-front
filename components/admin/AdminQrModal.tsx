@@ -142,13 +142,23 @@ export default function AdminQrModal({ jornada, isOpen, onClose }: AdminQrModalP
       doc.setFillColor(5, 150, 105);
       doc.rect(0, 32, pageWidth, 3.5, 'F');
 
-      // Renderizar Banner o Logo de Alcaldía a la izquierda (respetando relación de aspecto y transparencia PNG)
+      // Renderizar Banner de Alcaldía con contenedor blanco para máxima legibilidad del texto negro
       if (bannerInfo.dataUrl) {
-        const logoH = 22;
+        const logoH = 21;
         const logoW = Math.min(logoH * bannerInfo.aspectRatio, 62);
-        doc.addImage(bannerInfo.dataUrl, 'PNG', 10, (32 - logoH) / 2, logoW, logoH);
+        const logoX = 10;
+        const logoY = (32 - logoH) / 2;
+
+        // Fondo blanco redondeado para contraste del texto negro del logo
+        doc.setFillColor(255, 255, 255);
+        doc.setDrawColor(255, 255, 255);
+        doc.roundedRect(logoX - 2, logoY - 1, logoW + 4, logoH + 2, 2, 2, 'F');
+
+        doc.addImage(bannerInfo.dataUrl, 'PNG', logoX, logoY, logoW, logoH);
       } else if (logoInfo.dataUrl) {
-        doc.addImage(logoInfo.dataUrl, 'JPEG', 10, 4, 24, 24);
+        doc.setFillColor(255, 255, 255);
+        doc.roundedRect(8, 3, 26, 26, 2, 2, 'F');
+        doc.addImage(logoInfo.dataUrl, 'JPEG', 9, 4, 24, 24);
       }
 
       // Renderizar Logo oficial de La Ronda Vive a la derecha (transparente sin deformación)
@@ -165,8 +175,8 @@ export default function AdminQrModal({ jornada, isOpen, onClose }: AdminQrModalP
       doc.text('ALCALDÍA DE MONTERÍA • SECRETARÍA DE CULTURA', pageWidth / 2, 11, { align: 'center' });
 
       doc.setFontSize(16.5);
-      doc.setTextColor(16, 185, 129); // Verde brillante #10b981
-      doc.text('RONDA VIVE', pageWidth / 2, 20, { align: 'center' });
+      doc.setTextColor(0, 0, 0); // Debe ir blanco
+      doc.text('LA RONDA VIVE', pageWidth / 2, 20, { align: 'center' });
 
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(9);
@@ -178,13 +188,30 @@ export default function AdminQrModal({ jornada, isOpen, onClose }: AdminQrModalP
       // --- COLUMNA IZQUIERDA (x = 14mm a 140mm) ---
       const leftColX = 14;
       const leftColWidth = 126;
+      const photoBoxH = 52;
+      const photoY = 39;
 
-      // Foto de La Ronda Vive en lugar del planchón
+      // Foto de La Ronda Vive dibujada con preservación estricta de la relación de aspecto (sin estirar ni aplastar)
       if (rondaScaledInfo.dataUrl) {
+        // Marco contenedor con fondo sobrio
+        doc.setFillColor(248, 250, 252);
         doc.setDrawColor(203, 213, 225);
-        doc.setLineWidth(0.5);
-        doc.roundedRect(leftColX, 40, leftColWidth, 48, 3, 3, 'D');
-        doc.addImage(rondaScaledInfo.dataUrl, 'JPEG', leftColX + 0.5, 40.5, leftColWidth - 1, 47, undefined, 'FAST');
+        doc.setLineWidth(0.6);
+        doc.roundedRect(leftColX, photoY, leftColWidth, photoBoxH, 3, 3, 'FD');
+
+        const ratio = rondaScaledInfo.aspectRatio || 1.6;
+        let drawW = leftColWidth - 1;
+        let drawH = drawW / ratio;
+
+        if (drawH > photoBoxH - 1) {
+          drawH = photoBoxH - 1;
+          drawW = drawH * ratio;
+        }
+
+        const drawX = leftColX + (leftColWidth - drawW) / 2;
+        const drawY = photoY + (photoBoxH - drawH) / 2;
+
+        doc.addImage(rondaScaledInfo.dataUrl, 'JPEG', drawX, drawY, drawW, drawH, undefined, 'FAST');
       }
 
       // Título de la Jornada
@@ -328,13 +355,15 @@ export default function AdminQrModal({ jornada, isOpen, onClose }: AdminQrModalP
         <div className="qr-poster-frame qr-poster-frame--landscape">
           <div className="qr-poster-head-brand">
             <div className="poster-logo-col">
-              <NextImage
-                src={alcaldiaBanner}
-                alt="Alcaldía de Montería"
-                width={160}
-                height={60}
-                style={{ objectFit: 'contain' }}
-              />
+              <div className="poster-logo-box-white">
+                <NextImage
+                  src={alcaldiaBanner}
+                  alt="Alcaldía de Montería"
+                  width={150}
+                  height={52}
+                  style={{ objectFit: 'contain' }}
+                />
+              </div>
             </div>
             <div className="poster-title-col">
               <span className="poster-institution">ALCALDÍA DE MONTERÍA</span>

@@ -2657,6 +2657,32 @@ button.step-pill {
   margin-bottom: 20px;
 }
 
+.poster-logo-box-white {
+  background: #ffffff;
+  padding: 6px 10px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+}
+
+.poster-photo-wrapper {
+  width: 100%;
+  height: 150px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+}
+
+.poster-photo-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
 .poster-title-col {
   text-align: center;
 }
