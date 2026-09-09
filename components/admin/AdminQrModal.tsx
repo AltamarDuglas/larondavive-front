@@ -1,12 +1,20 @@
 'use client';
 
 /**
- * Importaciones de React y jsPDF.
- * Responsabilidad Única (SRP): Generación, presentación e impresión de pendones PDF con QR oficial para la Alcaldía de Montería.
+ * Importaciones de React, Next.js y jsPDF.
+ * Responsabilidad Única (SRP): Generación, presentación e impresión de pendones PDF en formato horizontal (landscape)
+ * adornados con logos oficiales de la Alcaldía de Montería y La Ronda Vive.
  */
 import { useEffect, useState } from 'react';
+import NextImage from 'next/image';
 import jsPDF from 'jspdf';
 import { JornadaRecord } from '../../lib/supabaseClient';
+
+// Importación de activos e imágenes oficiales de la Alcaldía y Ronda Vive
+import alcaldiaBanner from '../../app/imgs/alcaldia-banner.png';
+import alcaldiaLogo from '../../app/imgs/alcaldia-logo.jpg';
+import rondaViveLogo from '../../app/imgs/larondavive-logo.png';
+import rioSinu from '../../app/imgs/rio-sinu.jpg';
 
 export interface AdminQrModalProps {
   jornada: JornadaRecord | null;
@@ -28,11 +36,14 @@ function getCleanRegisterUrl(code: string): string {
 }
 
 /**
- * Convierte una imagen (URL) a Base64 utilizando HTML Canvas para renderizado sin errores en jsPDF.
+ * Convierte una imagen a Base64 utilizando HTML Canvas para renderizado nítido en jsPDF.
  */
 function convertImgToBase64(imgSrc: string): Promise<string> {
   return new Promise((resolve, reject) => {
-    const img = new Image();
+    if (typeof window === 'undefined') {
+      return resolve('');
+    }
+    const img = new window.Image();
     img.crossOrigin = 'Anonymous';
     img.onload = () => {
       const canvas = document.createElement('canvas');
@@ -55,7 +66,7 @@ function convertImgToBase64(imgSrc: string): Promise<string> {
 
 /**
  * Modal e Impresor de Códigos QR Oficiales para Pendón de la Alcaldía de Montería.
- * Genera PDF descargable de gran formato (A4) donde el código QR es el protagonista de gran tamaño.
+ * Genera un PDF horizontal (landscape) de alto impacto decorado con logos institucionales.
  */
 export default function AdminQrModal({ jornada, isOpen, onClose }: AdminQrModalProps) {
   const [qrUrl, setQrUrl] = useState<string>('');
@@ -75,126 +86,190 @@ export default function AdminQrModal({ jornada, isOpen, onClose }: AdminQrModalP
   const registerUrl = getCleanRegisterUrl(jornada.code);
 
   /**
-   * Genera y descarga un PDF institucional en formato A4 con un diseño sobrio y profesional,
-   * donde el Código QR es el elemento predominante de gran tamaño.
+   * Genera y descarga un PDF institucional en formato HORIZONTAL (Landscape A4: 297mm x 210mm)
+   * decorado con logos oficiales y donde el código QR es gigantesco y 100% libre de elementos encima.
    */
   const handleDownloadPdf = async () => {
     if (!jornada || !qrUrl) return;
     setIsGeneratingPdf(true);
 
     try {
-      // 1. Obtener imagen del QR en Base64
-      const qrBase64 = await convertImgToBase64(qrUrl);
+      // 1. Cargar las imágenes oficiales en Base64 en paralelo
+      const [qrBase64, bannerB64, logoB64, rondaLogoB64, rioSinuB64] = await Promise.all([
+        convertImgToBase64(qrUrl),
+        convertImgToBase64(alcaldiaBanner.src).catch(() => ''),
+        convertImgToBase64(alcaldiaLogo.src).catch(() => ''),
+        convertImgToBase64(rondaViveLogo.src).catch(() => ''),
+        convertImgToBase64(rioSinu.src).catch(() => ''),
+      ]);
 
-      // 2. Inicializar documento PDF en formato A4 (210mm x 297mm)
+      // 2. Inicializar documento PDF en orientación HORIZONTAL (Landscape A4: 297mm x 210mm)
       const doc = new jsPDF({
-        orientation: 'portrait',
+        orientation: 'landscape',
         unit: 'mm',
         format: 'a4',
       });
 
-      const pageWidth = 210;
-      const pageHeight = 297;
+      const pageWidth = 297;
+      const pageHeight = 210;
 
-      // 3. Encabezado institucional de la Alcaldía de Montería (Fondo azul oscuro #0f172a)
+      // 3. Fondo blanco impecable
+      doc.setFillColor(255, 255, 255);
+      doc.rect(0, 0, pageWidth, pageHeight, 'F');
+
+      // 4. Encabezado Superior Institucional (Fondo azul navy #0f172a)
       doc.setFillColor(15, 23, 42); // #0f172a
-      doc.rect(0, 0, pageWidth, 36, 'F');
+      doc.rect(0, 0, pageWidth, 32, 'F');
 
-      // Franja verde esmeralda institucional (#059669)
+      // Franja de acento verde esmeralda (#059669)
       doc.setFillColor(5, 150, 105);
-      doc.rect(0, 36, pageWidth, 3.5, 'F');
+      doc.rect(0, 32, pageWidth, 3.5, 'F');
 
-      // Textos institucionales del encabezado
+      // Renderizar Banner o Logo de Alcaldía a la izquierda
+      if (bannerB64) {
+        doc.addImage(bannerB64, 'PNG', 8, 3, 52, 26);
+      } else if (logoB64) {
+        doc.addImage(logoB64, 'JPEG', 10, 3, 26, 26);
+      }
+
+      // Renderizar Logo oficial de La Ronda Vive a la derecha
+      if (rondaLogoB64) {
+        doc.addImage(rondaLogoB64, 'PNG', pageWidth - 58, 3, 50, 26);
+      }
+
+      // Textos centrales en el encabezado
       doc.setTextColor(255, 255, 255);
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(10);
-      doc.text('ALCALDÍA DE MONTERÍA • SECRETARÍA DE CULTURA', pageWidth / 2, 12, { align: 'center' });
+      doc.setFontSize(10.5);
+      doc.text('ALCALDÍA DE MONTERÍA • SECRETARÍA DE CULTURA', pageWidth / 2, 11, { align: 'center' });
 
-      doc.setFontSize(22);
-      doc.text('RONDA VIVE', pageWidth / 2, 23, { align: 'center' });
+      doc.setFontSize(16.5);
+      doc.setTextColor(16, 185, 129); // Verde brillante #10b981
+      doc.text('RONDA VIVE', pageWidth / 2, 20, { align: 'center' });
 
       doc.setFont('helvetica', 'normal');
-      doc.setFontSize(9.5);
+      doc.setFontSize(9);
       doc.setTextColor(226, 232, 240);
-      doc.text('Registro Oficial de Asistencia Ciudadana', pageWidth / 2, 31, { align: 'center' });
+      doc.text('Registro Oficial de Asistencia Ciudadana', pageWidth / 2, 27, { align: 'center' });
 
-      // 4. Datos de la Jornada
+      // 5. DISTRIBUCIÓN EN 2 COLUMNAS (IZQUIERDA: INFORMACIÓN Y FOTO; DERECHA: QR GIGANTE)
+
+      // --- COLUMNA IZQUIERDA (x = 12mm a 142mm) ---
+      const leftColX = 14;
+      const leftColWidth = 126;
+
+      // Foto de la Ronda del Sinú / evento
+      if (rioSinuB64) {
+        doc.setDrawColor(203, 213, 225);
+        doc.setLineWidth(0.5);
+        doc.roundedRect(leftColX, 40, leftColWidth, 48, 3, 3, 'D');
+        doc.addImage(rioSinuB64, 'JPEG', leftColX + 0.5, 40.5, leftColWidth - 1, 47, undefined, 'FAST');
+      }
+
+      // Título de la Jornada
       doc.setTextColor(15, 23, 42);
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(15);
-      doc.text(jornada.title.toUpperCase(), pageWidth / 2, 48, { align: 'center' });
+      doc.text(jornada.title.toUpperCase(), leftColX, 98);
+
+      // Tarjeta de Detalles (Ubicación y Fecha)
+      doc.setFillColor(248, 250, 252);
+      doc.setDrawColor(226, 232, 240);
+      doc.setLineWidth(0.6);
+      doc.roundedRect(leftColX, 103, leftColWidth, 18, 3, 3, 'FD');
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(10);
+      doc.setTextColor(15, 23, 42);
+      doc.text(`Ubicación: ${jornada.location}`, leftColX + 5, 110);
 
       doc.setFont('helvetica', 'normal');
-      doc.setFontSize(10.5);
+      doc.setFontSize(9.5);
       doc.setTextColor(71, 85, 105);
-      doc.text(`Ubicación: ${jornada.location}  |  Fecha: ${jornada.event_date}`, pageWidth / 2, 55, { align: 'center' });
+      doc.text(`Fecha de Ejecución: ${jornada.event_date}`, leftColX + 5, 116);
 
-      // 5. Marco contenedor del CÓDIGO QR GIGANTE
-      const boxWidth = 160;
-      const boxHeight = 160;
-      const boxX = (pageWidth - boxWidth) / 2; // 25mm
-      const boxY = 62;
-
-      // Fondo contenedor gris claro con borde sobrio
-      doc.setFillColor(248, 250, 252);
-      doc.setDrawColor(203, 213, 225);
-      doc.setLineWidth(0.8);
-      doc.roundedRect(boxX, boxY, boxWidth, boxHeight, 4, 4, 'FD');
-
-      // QR Gigante (142mm x 142mm) centrado dentro del marco
-      const qrSize = 142;
-      const qrX = (pageWidth - qrSize) / 2;
-      const qrY = boxY + 7;
-
-      doc.addImage(qrBase64, 'PNG', qrX, qrY, qrSize, qrSize);
-
-      // Badge elegante con el código único de la jornada
+      // Badge con el Código Único de la Jornada (SIN SOLAPAR EL QR)
       doc.setFillColor(15, 23, 42);
-      doc.roundedRect(pageWidth / 2 - 38, boxY + boxHeight - 14, 76, 10, 2, 2, 'F');
+      doc.roundedRect(leftColX, 126, leftColWidth, 12, 3, 3, 'F');
       doc.setTextColor(255, 255, 255);
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(11);
-      doc.text(`CÓDIGO ÚNICO: ${jornada.code}`, pageWidth / 2, boxY + boxHeight - 7.5, { align: 'center' });
+      doc.text(`CÓDIGO ÚNICO DE JORNADA: ${jornada.code}`, leftColX + leftColWidth / 2, 133.5, { align: 'center' });
 
-      // 6. Instrucción al ciudadano
-      const instructionsY = 232;
+      // Instrucciones para el ciudadano
+      const instY = 146;
       doc.setTextColor(5, 150, 105); // Verde esmeralda
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(14.5);
-      doc.text('ESCANEA CON LA CÁMARA DE TU CELULAR', pageWidth / 2, instructionsY, { align: 'center' });
+      doc.setFontSize(13);
+      doc.text('ESCANEA CON LA CÁMARA DE TU CELULAR', leftColX + leftColWidth / 2, instY, { align: 'center' });
 
       doc.setTextColor(51, 65, 85);
       doc.setFont('helvetica', 'normal');
-      doc.setFontSize(10);
-      doc.text('Apunta la cámara de tu teléfono al código QR para confirmar tu asistencia.', pageWidth / 2, instructionsY + 7, { align: 'center' });
+      doc.setFontSize(9.5);
+      doc.text('Apunta la cámara de tu teléfono al código QR de la derecha para registrar tu asistencia de forma inmediata.', leftColX + leftColWidth / 2, instY + 6, { align: 'center', maxWidth: leftColWidth });
 
-      // 7. Enlace directo (Limpio y garantizado SIN /admin)
-      const urlBoxY = instructionsY + 13;
-      const urlBoxWidth = 160;
-      const urlBoxX = (pageWidth - urlBoxWidth) / 2;
-
+      // Caja con la URL Limpia (Garantizada SIN /admin)
+      const urlBoxY = 163;
       doc.setFillColor(241, 245, 249);
       doc.setDrawColor(203, 213, 225);
       doc.setLineWidth(0.5);
-      doc.roundedRect(urlBoxX, urlBoxY, urlBoxWidth, 12, 2, 2, 'FD');
+      doc.roundedRect(leftColX, urlBoxY, leftColWidth, 11, 2, 2, 'FD');
 
       doc.setTextColor(15, 23, 42);
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(9.5);
-      doc.text(registerUrl, pageWidth / 2, urlBoxY + 7.5, { align: 'center' });
+      doc.setFontSize(9);
+      doc.text(registerUrl, leftColX + leftColWidth / 2, urlBoxY + 7, { align: 'center' });
 
-      // 8. Pie de página institucional
+
+      // --- COLUMNA DERECHA: EL CÓDIGO QR GIGANTE (x = 148mm a 285mm) ---
+      const rightColX = 148;
+      const rightColWidth = 135;
+      const qrBoxHeight = 151;
+      const qrBoxY = 40;
+
+      // Marco contenedor del QR Gigante
+      doc.setFillColor(255, 255, 255);
+      doc.setDrawColor(203, 213, 225);
+      doc.setLineWidth(0.8);
+      doc.roundedRect(rightColX, qrBoxY, rightColWidth, qrBoxHeight, 4, 4, 'FD');
+
+      // Franja superior del marco del QR
+      doc.setFillColor(15, 23, 42);
+      doc.roundedRect(rightColX, qrBoxY, rightColWidth, 10, 4, 4, 'F');
+      doc.rect(rightColX, qrBoxY + 6, rightColWidth, 4, 'F');
+
+      doc.setTextColor(255, 255, 255);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(9.5);
+      doc.text('CÓDIGO QR OFICIAL DE ASISTENCIA', rightColX + rightColWidth / 2, qrBoxY + 6.5, { align: 'center' });
+
+      // QR GIGANTE (122mm x 122mm) NÍTIDO Y TOTALMENTE LIMPIO (SIN NINGÚN ELEMENTO ENCIMA)
+      const qrSize = 122;
+      const qrX = rightColX + (rightColWidth - qrSize) / 2;
+      const qrY = qrBoxY + 13;
+
+      doc.addImage(qrBase64, 'PNG', qrX, qrY, qrSize, qrSize);
+
+      // Pie del marco del QR (UBICADO DEBAJO DEL QR, SIN TAPARLO)
+      doc.setFillColor(5, 150, 105);
+      doc.roundedRect(rightColX + 20, qrBoxY + qrBoxHeight - 12, rightColWidth - 40, 8, 2, 2, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(9.5);
+      doc.text(`VÁLIDO PARA LA JORNADA: ${jornada.code}`, rightColX + rightColWidth / 2, qrBoxY + qrBoxHeight - 6.5, { align: 'center' });
+
+      // 6. Pie de página institucional
       doc.setDrawColor(226, 232, 240);
       doc.setLineWidth(0.4);
-      doc.line(15, pageHeight - 12, pageWidth - 15, pageHeight - 12);
+      doc.line(14, pageHeight - 12, pageWidth - 14, pageHeight - 12);
 
       doc.setTextColor(100, 116, 139);
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(8);
-      doc.text('Alcaldía de Montería — Secretaría de Cultura • Documento de Impresión Oficial Pendón QR', pageWidth / 2, pageHeight - 6, { align: 'center' });
+      doc.text('Alcaldía de Montería — Secretaría de Cultura • Documento de Impresión Oficial Pendón QR en Formato Horizontal', pageWidth / 2, pageHeight - 6, { align: 'center' });
 
-      // 9. Descargar archivo PDF
-      doc.save(`Pendon_QR_RondaVive_${jornada.code}.pdf`);
+      // 7. Descargar archivo PDF
+      doc.save(`Pendon_QR_Horizontal_RondaVive_${jornada.code}.pdf`);
     } catch (error) {
       console.error('Error al generar el PDF del QR:', error);
       alert('Ocurrió un error al generar el PDF. Por favor reintenta.');
@@ -210,14 +285,15 @@ export default function AdminQrModal({ jornada, isOpen, onClose }: AdminQrModalP
   return (
     <div className="admin-modal-backdrop" onClick={onClose}>
       <div
-        className="admin-modal-card qr-poster-modal"
+        className="admin-modal-card qr-poster-modal qr-poster-modal--landscape"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
+        style={{ maxWidth: '980px', width: '95%' }}
       >
         <div className="admin-modal-header no-print">
           <div>
             <span className="eyebrow">Alcaldía de Montería</span>
-            <h3>Pendón Oficial de Registro QR</h3>
+            <h3>Pendón Oficial de Registro QR (Vista Horizontal)</h3>
           </div>
           <button type="button" className="admin-modal-close" onClick={onClose}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -226,37 +302,80 @@ export default function AdminQrModal({ jornada, isOpen, onClose }: AdminQrModalP
           </button>
         </div>
 
-        {/* CONTENIDO DEL PENDÓN DE IMPRESIÓN OFICIAL / VISTA PREVIA */}
-        <div className="qr-poster-frame">
-          <div className="qr-poster-head">
-            <span className="poster-institution">ALCALDÍA DE MONTERÍA</span>
-            <span className="poster-department">SECRETARÍA DE CULTURA</span>
-            <h2 className="poster-title">RONDA VIVE</h2>
-            <p className="poster-subtitle">Registro Oficial de Asistencia Ciudadana</p>
-          </div>
-
-          <div className="qr-image-wrapper">
-            {qrUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={qrUrl}
-                alt={`Código QR para la jornada ${jornada.code}`}
-                className="qr-code-img"
+        {/* CONTENIDO DEL PENDÓN DE IMPRESIÓN OFICIAL / VISTA PREVIA HORIZONTAL */}
+        <div className="qr-poster-frame qr-poster-frame--landscape">
+          <div className="qr-poster-head-brand">
+            <div className="poster-logo-col">
+              <NextImage
+                src={alcaldiaBanner}
+                alt="Alcaldía de Montería"
+                width={160}
+                height={60}
+                style={{ objectFit: 'contain' }}
               />
-            ) : (
-              <div className="qr-placeholder">Generando QR...</div>
-            )}
-            <span className="qr-badge-code">{jornada.code}</span>
+            </div>
+            <div className="poster-title-col">
+              <span className="poster-institution">ALCALDÍA DE MONTERÍA</span>
+              <span className="poster-department">SECRETARÍA DE CULTURA</span>
+              <h2 className="poster-title">RONDA VIVE</h2>
+              <p className="poster-subtitle">Registro Oficial de Asistencia Ciudadana</p>
+            </div>
+            <div className="poster-logo-col" style={{ textAlign: 'right' }}>
+              <NextImage
+                src={rondaViveLogo}
+                alt="La Ronda Vive"
+                width={140}
+                height={60}
+                style={{ objectFit: 'contain' }}
+              />
+            </div>
           </div>
 
-          <div className="qr-poster-body">
-            <h3>{jornada.title}</h3>
-            <p className="poster-location">Ubicación: {jornada.location}</p>
-            <p className="poster-instructions">
-              <strong>Escanea con la cámara de tu celular</strong> para confirmar tu presencia en la jornada de hoy.
-            </p>
-            <div className="poster-link-box">
-              <span>{registerUrl}</span>
+          <div className="qr-poster-landscape-body">
+            {/* Columna Izquierda: Información de la jornada e instrucciones */}
+            <div className="poster-info-col">
+              <div className="poster-photo-wrapper">
+                <NextImage
+                  src={rioSinu}
+                  alt="Ronda del Sinú"
+                  width={340}
+                  height={140}
+                  style={{ objectFit: 'cover', borderRadius: '12px', width: '100%', height: '140px' }}
+                />
+              </div>
+
+              <h3 className="poster-jornada-title">{jornada.title}</h3>
+              <p className="poster-location">Ubicación: {jornada.location} | Fecha: {jornada.event_date}</p>
+
+              <div className="poster-code-badge">
+                CÓDIGO ÚNICO DE JORNADA: {jornada.code}
+              </div>
+
+              <p className="poster-instructions">
+                <strong>Escanea con la cámara de tu celular</strong> para confirmar tu presencia en la jornada de hoy.
+              </p>
+
+              <div className="poster-link-box">
+                <span>{registerUrl}</span>
+              </div>
+            </div>
+
+            {/* Columna Derecha: QR Gigante Limpio sin solapamientos */}
+            <div className="poster-qr-col">
+              <div className="qr-image-wrapper qr-image-wrapper--clean">
+                <span className="qr-top-tag">CÓDIGO QR OFICIAL</span>
+                {qrUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={qrUrl}
+                    alt={`Código QR para la jornada ${jornada.code}`}
+                    className="qr-code-img qr-code-img--large"
+                  />
+                ) : (
+                  <div className="qr-placeholder">Generando QR...</div>
+                )}
+                <span className="qr-badge-code">VÁLIDO PARA: {jornada.code}</span>
+              </div>
             </div>
           </div>
         </div>
@@ -283,11 +402,12 @@ export default function AdminQrModal({ jornada, isOpen, onClose }: AdminQrModalP
               <polyline points="7 10 12 15 17 10" />
               <line x1="12" y1="15" x2="12" y2="3" />
             </svg>
-            {isGeneratingPdf ? 'Generando PDF...' : 'Descargar PDF Oficial (Pendón QR)'}
+            {isGeneratingPdf ? 'Generando PDF Horizontal...' : 'Descargar PDF Horizontal (Pendón QR)'}
           </button>
         </div>
       </div>
     </div>
   );
 }
+
 
