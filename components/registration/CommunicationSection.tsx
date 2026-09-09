@@ -43,19 +43,6 @@ export default function CommunicationSection({
         </div>
       </div>
 
-      <div className="communication-notice-box">
-        <span className="notice-icon">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M22 17H2a3 3 0 0 0 3-3V9a7 7 0 0 1 14 0v5a3 3 0 0 0 3 3zm-8 4a2 2 0 0 1-4 0"></path>
-          </svg>
-        </span>
-        <p className="notice-text">
-          Registre un único número telefónico y un solo correo electrónico, ya que serán los canales
-          oficiales de comunicación durante todo el proceso. El correo debe mantenerse activo durante la
-          ejecución del proyecto.
-        </p>
-      </div>
-
       <div className="form-row-2col">
         {/* Número de contacto */}
         <div className="form-group">

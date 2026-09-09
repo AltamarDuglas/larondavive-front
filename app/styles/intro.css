@@ -1,0 +1,264 @@
+/**
+ * Estilos de la Animación Introductoria (IntroAnimation.tsx)
+ * Metodología SOLID: Responsabilidad Única (SRP) - Presentación secuencial y carrusel inicial.
+ */
+
+.intro-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #091122;
+  color: #ffffff;
+  overflow: hidden;
+  animation: introFadeIn 400ms ease-out forwards;
+}
+
+.intro-overlay__backdrop {
+  position: absolute;
+  inset: -20%;
+  background:
+    radial-gradient(circle at 25% 25%, rgba(220, 38, 38, 0.3), transparent 50%),
+    radial-gradient(circle at 75% 75%, rgba(37, 99, 235, 0.3), transparent 50%);
+  filter: blur(60px);
+  animation: bgPulse 10s ease-in-out infinite alternate;
+}
+
+.intro-overlay__skip-btn {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  z-index: 100;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+  padding: 8px 20px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 800;
+  cursor: pointer;
+  backdrop-filter: blur(12px);
+  transition: all 160ms ease;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+.intro-overlay__skip-btn:hover {
+  background: rgba(255, 255, 255, 0.28);
+  transform: translateY(-1px);
+}
+
+.intro-overlay__content {
+  position: relative;
+  z-index: 10;
+  text-align: center;
+  width: min(720px, calc(100% - 32px));
+  padding: 0 16px;
+}
+
+.intro-stage {
+  animation: introSlideUp 500ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.logo-emblem-frame {
+  position: relative;
+  display: inline-block;
+  margin-bottom: 24px;
+}
+
+.logo-emblem-glow {
+  position: absolute;
+  inset: -12px;
+  border-radius: 36px;
+  background: radial-gradient(circle, rgba(220, 38, 38, 0.35), rgba(37, 99, 235, 0.35), transparent 70%);
+  filter: blur(16px);
+}
+
+.logo-emblem-wrapper {
+  position: relative;
+  width: 140px;
+  height: 140px;
+  border-radius: 28px;
+  overflow: hidden;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  background: #000000;
+  box-shadow:
+    0 20px 48px rgba(0, 0, 0, 0.7),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo-emblem-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.intro-title {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(2.2rem, 5.5vw, 3.6rem);
+  line-height: 1.1;
+  margin: 0 0 16px;
+  font-weight: 700;
+}
+
+.text-highlight-white {
+  color: #ffffff;
+}
+
+.text-highlight-red {
+  color: #ef4444;
+}
+
+.intro-subtitle {
+  font-size: clamp(1rem, 2vw, 1.2rem);
+  color: rgba(255, 255, 255, 0.88);
+  line-height: 1.5;
+  max-width: 580px;
+  margin: 0 auto;
+}
+
+/* Barra de progreso estilo Bandera de Montería (Rojo, Blanco, Azul) */
+.monteria-flag-bar-track {
+  position: relative;
+  width: 290px;
+  height: 12px;
+  margin: 36px auto 0;
+  overflow: visible;
+}
+
+.monteria-flag-bar-clip {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+.monteria-flag-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    #dc2626 0%,
+    #dc2626 33.33%,
+    #ffffff 33.33%,
+    #ffffff 66.66%,
+    #2563eb 66.66%,
+    #2563eb 100%
+  );
+  transition: width 80ms linear;
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.4);
+}
+
+.monteria-flag-star-animated {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 25;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  animation: starPopIn 500ms cubic-bezier(0.175, 0.885, 0.32, 1.35) forwards;
+}
+
+.monteria-flag-star-svg-yellow {
+  width: 32px;
+  height: 32px;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.8));
+}
+
+/* Carrusel Cinemático en la Intro */
+.rockstar-stage {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: #000000;
+  overflow: hidden;
+}
+
+.rockstar-slide {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transform: scale(1.08);
+  transition:
+    opacity 350ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 1200ms cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+}
+
+.rockstar-slide.is-active {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
+}
+
+.rockstar-slide__image {
+  object-fit: cover;
+  object-position: center;
+  filter: saturate(1.15) contrast(1.12);
+}
+
+.rockstar-slide__vignette {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0.85) 100%),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.5) 0%, transparent 40%, rgba(0, 0, 0, 0.95) 100%);
+}
+
+.rockstar-slide__card {
+  position: absolute;
+  bottom: 70px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  text-align: center;
+  width: min(720px, calc(100% - 32px));
+  animation: rockstarCardPop 400ms ease-out forwards;
+}
+
+.rockstar-badge {
+  display: inline-block;
+  background: var(--monteria-red);
+  color: #ffffff;
+  padding: 4px 14px;
+  border-radius: 4px;
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  box-shadow: 0 4px 16px rgba(220, 38, 38, 0.6);
+}
+
+.rockstar-title {
+  font-family: 'Impact', 'Avenir Next', 'Arial Black', sans-serif;
+  font-size: clamp(2.8rem, 8vw, 5.2rem);
+  line-height: 0.95;
+  color: #ffffff;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-shadow:
+    0 4px 20px rgba(0, 0, 0, 0.9),
+    0 0 30px rgba(0, 0, 0, 0.8);
+  margin: 0 0 10px;
+}
+
+.rockstar-tagline {
+  margin: 0;
+  font-size: clamp(1rem, 2vw, 1.2rem);
+  color: rgba(255, 255, 255, 0.92);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+}

@@ -1,0 +1,519 @@
+/**
+ * Estilos de la Página Principal (Hero, Flujo Ciudadano, Privacidad, Estadísticas y Footer)
+ * Metodología SOLID: Responsabilidad Única (SRP) - Componentes de la vista principal.
+ */
+
+/* ==========================================================================
+   ENCABEZADO Y NAVEGACIÓN COMPACTA EN 1 LÍNEA (HeaderNav.tsx)
+   ========================================================================== */
+
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  width: 100%;
+  padding: 12px 20px;
+  background: var(--surface-glass-strong);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border-light);
+  box-shadow: 0 2px 12px rgba(15, 23, 42, 0.04);
+}
+
+.site-header__inner {
+  max-width: 1040px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.site-header__brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  font-size: 0.92rem;
+  white-space: nowrap;
+}
+
+.brand-banner-img {
+  height: 52px;
+  width: auto;
+  object-fit: contain;
+  max-width: 220px;
+}
+
+.brand-divider-v {
+  width: 1px;
+  height: 32px;
+  background: var(--border-light);
+  margin: 0 4px;
+}
+
+.brand-ronda-logo {
+  height: 44px;
+  width: auto;
+  object-fit: contain;
+  max-width: 180px;
+}
+
+.site-header__nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.nav-link {
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: var(--text-main);
+  transition: all 140ms ease;
+  white-space: nowrap;
+}
+
+.nav-link:hover {
+  background: rgba(37, 99, 235, 0.08);
+  color: var(--monteria-blue);
+}
+
+.nav-link--primary {
+  color: var(--monteria-blue-dark);
+  background: rgba(37, 99, 235, 0.08);
+}
+
+.nav-btn-intro {
+  background: rgba(220, 38, 38, 0.08);
+  border: 1px solid var(--border-red);
+  color: var(--monteria-red-dark);
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 160ms ease;
+  white-space: nowrap;
+}
+
+.nav-btn-intro:hover {
+  background: rgba(220, 38, 38, 0.16);
+}
+
+/* ==========================================================================
+   HERO ULTRA-LIMPIO Y DIRECTO (HeroSection.tsx)
+   ========================================================================== */
+
+.clean-hero {
+  padding: 40px 20px 32px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.clean-hero__container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 24px;
+}
+
+.clean-hero__header {
+  display: grid;
+  gap: 10px;
+  max-width: 640px;
+}
+
+.clean-hero__title {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(2.1rem, 4.5vw, 3.2rem);
+  line-height: 1.12;
+  color: var(--text-main);
+  margin: 0;
+  font-weight: 800;
+}
+
+.hero-logo-frame {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 12px 0 16px;
+  width: 100%;
+}
+
+.hero-ronda-logo-img {
+  height: clamp(110px, 24vw, 160px);
+  width: auto;
+  object-fit: contain;
+  max-width: 440px;
+  filter: 
+    drop-shadow(0px 2px 4px rgba(15, 23, 42, 0.85))
+    drop-shadow(0px 4px 12px rgba(15, 23, 42, 0.35))
+    drop-shadow(0px 0px 16px rgba(37, 99, 235, 0.25));
+  transition: transform 200ms ease, filter 200ms ease;
+}
+
+.hero-ronda-logo-img:hover {
+  transform: scale(1.03);
+  filter: 
+    drop-shadow(0px 3px 6px rgba(15, 23, 42, 0.95))
+    drop-shadow(0px 6px 16px rgba(15, 23, 42, 0.45))
+    drop-shadow(0px 0px 20px rgba(37, 99, 235, 0.4));
+}
+
+.title-accent {
+  color: var(--monteria-blue);
+}
+
+.clean-hero__subtitle {
+  margin: 0;
+  font-size: 1.05rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.clean-hero__actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  max-width: 480px;
+}
+
+.clean-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 12px 20px;
+  border-radius: 14px;
+  font-size: 0.94rem;
+  font-weight: 800;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 180ms ease;
+  text-decoration: none;
+  white-space: normal;
+  text-align: center;
+  line-height: 1.35;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.clean-btn--primary {
+  color: #ffffff;
+  background: var(--monteria-blue);
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.25);
+}
+
+.clean-btn--primary:hover {
+  background: var(--monteria-blue-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(37, 99, 235, 0.35);
+}
+
+.clean-btn--secondary {
+  background: var(--surface-white);
+  color: var(--text-main);
+  border: 1.5px solid var(--border-light);
+  box-shadow: var(--shadow-sm);
+}
+
+.clean-btn--secondary:hover {
+  border-color: var(--monteria-blue);
+  color: var(--monteria-blue);
+  transform: translateY(-1px);
+}
+
+/* MARCO FOTOGRÁFICO DE APOYO */
+.clean-hero__gallery {
+  width: 100%;
+  max-width: 800px;
+  margin-top: 8px;
+}
+
+.clean-gallery__frame {
+  position: relative;
+  width: 100%;
+  height: 280px;
+  border-radius: 24px;
+  overflow: hidden;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  box-shadow: var(--shadow-md);
+  background: #091122;
+}
+
+.gallery-slide {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 600ms ease;
+}
+
+.gallery-slide.is-active {
+  opacity: 1;
+}
+
+.gallery-slide__img {
+  object-fit: cover;
+  object-position: center;
+}
+
+.gallery-slide__overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 50%, rgba(0, 0, 0, 0.7) 100%);
+}
+
+.gallery-slide__caption {
+  position: absolute;
+  bottom: 16px;
+  left: 20px;
+  z-index: 10;
+  color: #ffffff;
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+/* MARCO FOTOGRÁFICO DE MONTERÍA */
+.cultural-hero__frame-container {
+  position: relative;
+  width: 100%;
+}
+
+.cultural-hero__frame-glow {
+  position: absolute;
+  inset: -14px;
+  border-radius: 36px;
+  background: radial-gradient(circle, rgba(220, 38, 38, 0.2), rgba(37, 99, 235, 0.2), transparent 70%);
+  filter: blur(20px);
+}
+
+.cultural-hero__frame {
+  position: relative;
+  width: 100%;
+  height: 420px;
+  border-radius: 28px;
+  overflow: hidden;
+  border: 3px solid rgba(255, 255, 255, 0.9);
+  box-shadow: var(--shadow-lg);
+  background: #091122;
+}
+
+.hero-photo-slide {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transform: scale(1.05);
+  transition: opacity 600ms ease, transform 1400ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.hero-photo-slide.is-active {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.hero-photo-img {
+  object-fit: cover;
+  object-position: center;
+}
+
+.hero-photo-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.2) 0%,
+    transparent 50%,
+    rgba(0, 0, 0, 0.85) 100%
+  );
+}
+
+.hero-photo-tag {
+  position: absolute;
+  top: 18px;
+  left: 18px;
+  z-index: 10;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+  padding: 4px 14px;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.hero-photo-caption {
+  position: absolute;
+  bottom: 24px;
+  left: 20px;
+  right: 20px;
+  z-index: 10;
+  color: #ffffff;
+}
+
+.caption-loc {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.9);
+  display: block;
+  margin-bottom: 2px;
+}
+
+.caption-desc {
+  margin: 0;
+  font-size: 0.94rem;
+  line-height: 1.35;
+  color: rgba(255, 255, 255, 0.95);
+  font-weight: 600;
+}
+
+.hero-photo-dots {
+  position: absolute;
+  bottom: 12px;
+  right: 18px;
+  z-index: 15;
+  display: flex;
+  gap: 6px;
+}
+
+.dot-item {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.4);
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: all 180ms ease;
+}
+
+.dot-item.is-active {
+  width: 24px;
+  background: var(--monteria-blue);
+}
+
+/* ==========================================================================
+   SECCIONES DE CONTENIDO INTERNO Y FLUJO DE PASOS (CitizenFlow.tsx)
+   ========================================================================== */
+
+.page-content-wrapper {
+  max-width: 1140px;
+  margin: 24px auto 64px;
+  padding: 0 20px;
+  display: grid;
+  gap: 56px;
+}
+
+.section-heading {
+  display: grid;
+  gap: 6px;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.eyebrow {
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  font-size: 0.78rem;
+  color: var(--monteria-blue);
+  font-weight: 800;
+}
+
+.section-heading h2 {
+  font-family: Georgia, serif;
+  font-size: clamp(1.8rem, 3.2vw, 2.4rem);
+  margin: 0;
+  color: var(--text-main);
+}
+
+.lede {
+  max-width: 600px;
+  margin: 0 auto;
+  color: var(--text-muted);
+  font-size: 1rem;
+  line-height: 1.55;
+}
+
+.flow-steps-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
+  margin-top: 24px;
+}
+
+.flow-step-card {
+  position: relative;
+  border-radius: 24px;
+  padding: 24px 20px;
+  background: var(--surface-glass-strong);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-md);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: all 200ms ease;
+  overflow: hidden;
+}
+
+.flow-step-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(
+    90deg,
+    #dc2626 0%,
+    #dc2626 33.33%,
+    #e2e8f0 33.33%,
+    #e2e8f0 66.66%,
+    #2563eb 66.66%,
+    #2563eb 100%
+  );
+}
+
+.flow-step-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--border-blue);
+}
+
+.flow-step-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.flow-step-card__number {
+  font-size: 0.78rem;
+  font-weight: 900;
+  color: var(--monteria-blue-dark);
+  background: rgba(37, 99, 235, 0.1);
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border-blue);
+}
+
+.flow-step-card__title {
+  font-size: 1.12rem;
+  margin: 0;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.flow-step-card__desc {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+}

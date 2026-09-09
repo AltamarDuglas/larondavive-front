@@ -1,0 +1,869 @@
+/* ==========================================================================
+   MÓDULO DE ESTILOS: PANEL DE ADMINISTRACIÓN INSTITUCIONAL
+   Ubicación: apps/web/app/styles/admin.css
+   Dominio: Dashboard de administración, métricas analíticas, gestión de 
+            jornadas, tabla de inscritos, vista previa horizontal del modal QR,
+            estilos de impresión (@media print) y login de administrador.
+   ========================================================================== */
+
+/* ==========================================================================
+   1. PANEL DE ADMINISTRACIÓN INSTITUCIONAL (apps/web/app/admin/page.tsx)
+   ========================================================================== */
+
+.admin-container {
+  width: min(1040px, calc(100% - 32px));
+  margin: 24px auto 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.admin-header-card {
+  background: var(--surface-white);
+  border: 1px solid var(--border-light);
+  border-radius: 24px;
+  padding: 32px;
+  box-shadow: var(--shadow-md);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.admin-header-content {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.admin-header-title {
+  max-width: 680px;
+}
+
+.admin-header-title h1 {
+  font-family: Georgia, serif;
+  font-size: clamp(1.8rem, 4vw, 2.4rem);
+  margin: 4px 0 8px;
+  color: var(--text-main);
+}
+
+.connection-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  border: 1px solid transparent;
+}
+
+.connection-status-pill.is-connected {
+  background: rgba(34, 197, 94, 0.1);
+  color: #15803d;
+  border-color: rgba(34, 197, 94, 0.3);
+}
+
+.connection-status-pill.is-local {
+  background: rgba(234, 179, 8, 0.1);
+  color: #a16207;
+  border-color: rgba(234, 179, 8, 0.3);
+}
+
+.admin-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.admin-header-actions .clean-btn {
+  width: auto;
+  min-height: 42px;
+  padding: 8px 18px;
+  font-size: 0.88rem;
+}
+
+.admin-metrics-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.admin-metric-card {
+  background: var(--surface-white);
+  border: 1px solid var(--border-light);
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  transition: transform 160ms ease;
+}
+
+.admin-metric-card:hover {
+  transform: translateY(-2px);
+}
+
+.metric-icon {
+  font-size: 1.8rem;
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: rgba(37, 99, 235, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.metric-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.metric-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-subtle);
+  text-transform: uppercase;
+}
+
+.metric-value {
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: var(--text-main);
+  line-height: 1.2;
+}
+
+.admin-tabs-bar {
+  display: flex;
+  gap: 8px;
+  border-bottom: 2px solid var(--border-light);
+  padding-bottom: 2px;
+  overflow-x: auto;
+}
+
+.admin-tab-btn {
+  padding: 10px 20px;
+  border-radius: 12px 12px 0 0;
+  background: transparent;
+  border: none;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 160ms ease;
+  white-space: nowrap;
+}
+
+.admin-tab-btn:hover {
+  color: var(--monteria-blue);
+  background: rgba(37, 99, 235, 0.05);
+}
+
+.admin-tab-btn.is-active {
+  color: var(--monteria-blue-dark);
+  background: var(--surface-white);
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.04);
+  border-bottom: 3px solid var(--monteria-blue);
+}
+
+.admin-card {
+  background: var(--surface-white);
+  border: 1px solid var(--border-light);
+  border-radius: 20px;
+  padding: 28px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.card-header-flex {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.card-desc {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  margin: 2px 0 0;
+}
+
+.comuna-stats-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.comuna-stat-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.comuna-stat-head {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+}
+
+.comuna-name {
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.comuna-bar-track {
+  height: 8px;
+  border-radius: 999px;
+  background: #f1f5f9;
+  overflow: hidden;
+}
+
+.comuna-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--monteria-blue), #3b82f6);
+}
+
+.admin-info-box {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: #f8fafc;
+  padding: 16px;
+  border-radius: 14px;
+  border: 1px solid var(--border-light);
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.88rem;
+}
+
+.admin-notice-box {
+  background: rgba(37, 99, 235, 0.05);
+  border: 1px solid var(--border-blue);
+  padding: 16px;
+  border-radius: 14px;
+}
+
+.admin-notice-box h4 {
+  margin: 0 0 6px;
+  color: var(--monteria-blue-dark);
+}
+
+.admin-notice-box p {
+  margin: 0;
+  font-size: 0.86rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+/* Tablas Administrativas */
+.table-wrapper {
+  overflow-x: auto;
+  border-radius: 14px;
+  border: 1px solid var(--border-light);
+}
+
+.admin-data-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.88rem;
+}
+
+.admin-data-table th {
+  background: #f8fafc;
+  padding: 12px 16px;
+  font-weight: 800;
+  color: var(--text-subtle);
+  border-bottom: 1.5px solid var(--border-light);
+  white-space: nowrap;
+}
+
+.admin-data-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-light);
+  vertical-align: middle;
+}
+
+.admin-data-table tr:last-child td {
+  border-bottom: none;
+}
+
+.code-tag {
+  background: rgba(37, 99, 235, 0.08);
+  color: var(--monteria-blue-dark);
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-family: monospace;
+}
+
+.status-badge {
+  font-size: 0.78rem;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 999px;
+  display: inline-block;
+}
+
+.status-activa {
+  background: rgba(34, 197, 94, 0.1);
+  color: #15803d;
+}
+
+.status-programada {
+  background: rgba(234, 179, 8, 0.1);
+  color: #a16207;
+}
+
+.status-finalizada {
+  background: rgba(100, 116, 139, 0.1);
+  color: #475569;
+}
+
+.btn-table-action {
+  background: var(--surface-white);
+  border: 1px solid var(--border-light);
+  color: var(--monteria-blue-dark);
+  font-weight: 700;
+  font-size: 0.8rem;
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 140ms ease;
+}
+
+.btn-table-action:hover {
+  background: var(--monteria-blue);
+  color: #ffffff;
+}
+
+.table-filter-bar {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.filter-search {
+  flex: 1;
+  min-width: 260px;
+}
+
+/* Estilos para celdas del directorio de asistentes */
+.cell-user,
+.cell-contact,
+.cell-location,
+.cell-demo,
+.cell-population {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  line-height: 1.35;
+}
+
+.cell-user strong,
+.cell-location strong {
+  font-weight: 800;
+  color: var(--text-main);
+  font-size: 0.9rem;
+  display: block;
+}
+
+.cell-user small,
+.cell-location small,
+.cell-demo small,
+.cell-population small {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-weight: 500;
+  display: block;
+}
+
+.cell-contact span {
+  display: block;
+  font-size: 0.84rem;
+  color: var(--text-main);
+}
+
+.cell-contact span:first-child {
+  font-weight: 700;
+}
+
+.cell-contact span:last-child {
+  color: var(--monteria-blue-dark);
+  font-size: 0.8rem;
+}
+
+.cell-demo span,
+.cell-population span {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-main);
+  display: block;
+}
+
+.legal-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(34, 197, 94, 0.1);
+  color: #15803d;
+  font-size: 0.78rem;
+  font-weight: 800;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  white-space: nowrap;
+}
+
+.admin-export-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.admin-export-actions .clean-btn {
+  width: auto;
+  min-height: 42px;
+  padding: 8px 16px;
+  font-size: 0.86rem;
+}
+
+/* Modales Administrativos */
+.admin-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.admin-modal-card {
+  background: var(--surface-white);
+  border-radius: 24px;
+  padding: 32px;
+  width: min(540px, 100%);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.admin-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.admin-modal-header h3 {
+  margin: 2px 0 0;
+  font-family: Georgia, serif;
+  font-size: 1.4rem;
+}
+
+.admin-modal-close {
+  background: rgba(15, 23, 42, 0.06);
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+.admin-modal-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+/* PENDÓN QR DE IMPRESIÓN OFICIAL */
+.qr-poster-modal {
+  width: min(600px, 100%);
+}
+
+.qr-poster-frame {
+  background: #ffffff;
+  border: 4px double #000000;
+  padding: 36px 24px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.qr-poster-head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.poster-institution {
+  font-size: 0.85rem;
+  font-weight: 900;
+  letter-spacing: 2px;
+  color: #0f172a;
+}
+
+.poster-department {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #dc2626;
+}
+
+.poster-title {
+  font-family: Georgia, serif;
+  font-size: 2.2rem;
+  margin: 8px 0 0;
+  color: #2563eb;
+}
+
+.poster-subtitle {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #475569;
+  margin: 0;
+}
+
+.qr-image-wrapper {
+  position: relative;
+  border: 2px solid #cbd5e1;
+  padding: 24px;
+  background: #ffffff;
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+}
+
+.qr-code-img {
+  width: 290px;
+  height: 290px;
+  object-fit: contain;
+}
+
+.qr-badge-code {
+  background: #0f172a;
+  color: #ffffff;
+  font-size: 1.1rem;
+  font-weight: 800;
+  padding: 8px 24px;
+  border-radius: 999px;
+  letter-spacing: 1px;
+}
+
+.poster-instructions {
+  font-size: 1rem;
+  color: #0f172a;
+  max-width: 440px;
+  margin: 0 auto;
+}
+
+/* Vista Previa Horizontal del Modal de QR y Pendón Institucional */
+.qr-poster-frame--landscape {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 24px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+}
+
+.qr-poster-head-brand {
+  display: grid;
+  grid-template-columns: 180px 1fr 160px;
+  align-items: center;
+  gap: 16px;
+  padding-bottom: 16px;
+  border-bottom: 3.5px solid #059669;
+  margin-bottom: 20px;
+}
+
+.poster-logo-box-white {
+  background: #ffffff;
+  padding: 6px 10px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+}
+
+.poster-photo-wrapper {
+  width: 100%;
+  height: 150px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+}
+
+.poster-photo-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.poster-title-col {
+  text-align: center;
+}
+
+.qr-poster-landscape-body {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 28px;
+  align-items: start;
+}
+
+.poster-info-col {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.poster-jornada-title {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 4px 0 0;
+  text-transform: uppercase;
+}
+
+.poster-code-badge {
+  background: #0f172a;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.95rem;
+  padding: 10px 16px;
+  border-radius: 10px;
+  text-align: center;
+  letter-spacing: 0.5px;
+}
+
+.qr-image-wrapper--clean {
+  position: relative;
+  background: #ffffff;
+  border: 2px solid #cbd5e1;
+  padding: 18px 14px 14px;
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.qr-top-tag {
+  background: #0f172a;
+  color: #ffffff;
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 4px 14px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.qr-code-img--large {
+  width: 250px;
+  height: 250px;
+  object-fit: contain;
+}
+
+@media print {
+  @page {
+    size: landscape;
+    margin: 0;
+  }
+  body * {
+    visibility: hidden;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .admin-modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: #ffffff;
+    padding: 0;
+  }
+  .qr-poster-modal {
+    box-shadow: none;
+    padding: 0;
+    width: 100%;
+    max-width: 100% !important;
+  }
+  .qr-poster-frame,
+  .qr-poster-frame * {
+    visibility: visible;
+  }
+  .qr-poster-frame {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    border: none;
+  }
+}
+
+/* Botón de Exportación Verde a Excel (.xlsx) */
+.clean-btn--excel {
+  background: #16a34a;
+  color: #ffffff;
+  box-shadow: 0 6px 18px rgba(22, 163, 74, 0.25);
+}
+
+.clean-btn--excel:hover {
+  background: #15803d;
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(22, 163, 74, 0.35);
+}
+
+/* Formulario de Login del Administrador */
+.admin-login-wrapper {
+  width: min(480px, calc(100% - 32px));
+  margin: 40px auto 60px;
+}
+
+.admin-login-card {
+  box-shadow: var(--shadow-lg);
+  border-radius: 28px;
+}
+
+.admin-login-header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.admin-login-header h2 {
+  font-family: Georgia, serif;
+  font-size: 1.8rem;
+  margin: 4px 0 0;
+}
+
+.btn-logout {
+  background: rgba(220, 38, 38, 0.08);
+  border: 1px solid var(--border-red);
+  color: var(--monteria-red-dark);
+  font-size: 0.8rem;
+  font-weight: 800;
+  padding: 6px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 140ms ease;
+}
+
+.btn-logout:hover {
+  background: var(--monteria-red);
+  color: #ffffff;
+}
+
+/* Botón de Exportación Rojo PDF */
+.clean-btn--pdf {
+  background: #dc2626;
+  color: #ffffff;
+  box-shadow: 0 6px 18px rgba(220, 38, 38, 0.25);
+}
+
+.clean-btn--pdf:hover {
+  background: #b91c1c;
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(220, 38, 38, 0.35);
+}
+
+/* Estilos de Gráficas Analíticas Avanzadas */
+.admin-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+@media (max-width: 768px) {
+  .admin-grid-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+.chart-bar-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.chart-bar-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.chart-bar-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+}
+
+.chart-bar-label span {
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.chart-bar-label strong {
+  font-weight: 800;
+  color: var(--text-muted);
+}
+
+.chart-bar-track {
+  height: 9px;
+  border-radius: 999px;
+  background: #f1f5f9;
+  overflow: hidden;
+}
+
+.chart-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 400ms ease;
+}
+
+.fill-blue {
+  background: linear-gradient(90deg, #2563eb, #3b82f6);
+}
+
+.fill-red {
+  background: linear-gradient(90deg, #dc2626, #ef4444);
+}
+
+.fill-dark {
+  background: linear-gradient(90deg, #0f172a, #334155);
+}
+
+.analytics-subblock h4 {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--text-subtle);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0 0 8px;
+}
