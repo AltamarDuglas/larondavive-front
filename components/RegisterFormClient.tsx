@@ -1,12 +1,4 @@
-'use client';
-
-/**
- * Importaciones de React y Next.js.
- * - useState, useEffect: Manejo del flujo interactivo en 3 pasos (1. Código -> 2. Formulario / Reconocimiento -> 3. Ticket Digital).
- * - useSearchParams: Lectura directa del código QR proveniente de la URL.
- * - Link: Navegación del cliente sin recargar la página.
- */
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
@@ -47,12 +39,17 @@ export interface RegisterFormClientProps {
 /**
  * Componente RegisterFormClient (Flujo para Asistentes Nuevos y Recurrentes)
  * Responsabilidad Única (SRP): Controlar la secuencia interactiva de registro para la Alcaldía de Montería.
- * Detección directa de QR (salta al Paso 2) y tarjeta colapsable para asistentes ya registrados.
+ * Detección directa de QR (salta al Paso 2), tarjeta colapsable para asistentes ya registrados, y gestión de foco/scroll.
  */
 export default function RegisterFormClient({
   initialCode = 'RV-150926',
 }: RegisterFormClientProps) {
   const searchParams = useSearchParams();
+
+  // Referencias DOM para gestión accesible de foco y desplazamiento al tope de pantalla
+  const containerRef = useRef<HTMLDivElement>(null);
+  const ticketHeaderRef = useRef<HTMLHeadingElement>(null);
+  const errorAlertRef = useRef<HTMLDivElement>(null);
 
   // Código obtenido del parámetro URL '?code=...' si el usuario escaneó el QR
   const urlParamCode = searchParams.get('code');
@@ -65,6 +62,8 @@ export default function RegisterFormClient({
   const [hasPreviousData, setHasPreviousData] = useState<boolean>(false);
   // Estado para controlar el despliegue del formulario completo cuando el usuario es recurrente
   const [isFormExpanded, setIsFormExpanded] = useState<boolean>(false);
+  // Estado para indicar si el usuario ya estaba registrado previamente en la jornada actual
+  const [isAlreadyRegistered, setIsAlreadyRegistered] = useState<boolean>(false);
 
   // ==========================================================================
   // ESTADO DEL FORMULARIO DE ASISTENTE
@@ -99,6 +98,21 @@ export default function RegisterFormClient({
 
   // Mensaje de alerta de error
   const [errorMessage, setErrorMessage] = useState<string>('');
+
+  /**
+   * Función de utilidad para desplazar suavemente al tope de pantalla y colocar el foco
+   * en el elemento de interés (Encabezado de Ticket o Alerta de Error).
+   */
+  const scrollToTopAndFocus = (targetRef?: React.RefObject<HTMLElement | null>) => {
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    setTimeout(() => {
+      if (targetRef?.current) {
+        targetRef.current.focus();
+      }
+    }, 150);
+  };
 
   /**
    * Carga de datos previos guardados en el navegador (asistente recurrente)
@@ -164,80 +178,95 @@ export default function RegisterFormClient({
 
     if (!cleanCode) {
       setErrorMessage('Por favor ingresa un código de asistencia válido.');
+      scrollToTopAndFocus(errorAlertRef);
       return;
     }
 
     setErrorMessage('');
     setStep(2);
+    scrollToTopAndFocus();
   };
 
   /**
    * Manejador del Paso 2: Enviar formulario completo de datos del asistente
    */
-  const handleSubmitData = (e: React.FormEvent) => {
+  const handleSubmitData = async (e: React.FormEvent) => {
     e.preventDefault();
 
     // 1. Validación de datos básicos
     if (!fullName.trim() || !phone.trim() || !email.trim()) {
       setErrorMessage('Por favor completa los canales de comunicación y nombre completo.');
+      scrollToTopAndFocus(errorAlertRef);
       return;
     }
 
     // 2. Validación sociodemográfica (si está expandido o es primer registro)
     if (!ageRange) {
       setErrorMessage('Por favor selecciona tu rango de edad (Sección 4.1).');
+      scrollToTopAndFocus(errorAlertRef);
       return;
     }
     if (!genderIdentity) {
       setErrorMessage('Por favor selecciona tu identidad de género (Sección 4.2).');
+      scrollToTopAndFocus(errorAlertRef);
       return;
     }
     if (!bornInMonteria && !birthLocation.trim()) {
       setErrorMessage('Por favor selecciona tu municipio de nacimiento (Sección 4.3).');
+      scrollToTopAndFocus(errorAlertRef);
       return;
     }
     if (attendedWithChildren && childrenCount <= 0) {
       setErrorMessage('Por favor selecciona la cantidad de niños/as que te acompañan.');
+      scrollToTopAndFocus(errorAlertRef);
       return;
     }
 
     // 3. Validación territorial
     if (!barrio.trim()) {
       setErrorMessage('Por favor indica tu barrio o urbanización en Montería.');
+      scrollToTopAndFocus(errorAlertRef);
       return;
     }
     if (!comuna) {
       setErrorMessage('Por favor selecciona la Comuna de Montería (Sección 7.1).');
+      scrollToTopAndFocus(errorAlertRef);
       return;
     }
     if (!zone) {
       setErrorMessage('Por favor selecciona tu zona territorial (Urbana o Rural).');
+      scrollToTopAndFocus(errorAlertRef);
       return;
     }
 
     // 4. Validación de autorreconocimiento poblacional
     if (!populationGroup) {
       setErrorMessage('Por favor selecciona tu comunidad o grupo poblacional (Sección 8.1).');
+      scrollToTopAndFocus(errorAlertRef);
       return;
     }
     if (!socialGroup) {
       setErrorMessage('Por favor selecciona tu grupo social o sujeto de especial protección (Sección 8.2).');
+      scrollToTopAndFocus(errorAlertRef);
       return;
     }
     if (socialGroup === 'Otros' && !otherSocialGroupSpec.trim()) {
       setErrorMessage('Por favor especifica el grupo social o condición especial.');
+      scrollToTopAndFocus(errorAlertRef);
       return;
     }
 
     // 5. Validación legal y Habeas Data
     if (!acceptedHabeasData) {
       setErrorMessage('Debes aceptar la autorización de tratamiento de datos personales (Habeas Data).');
+      scrollToTopAndFocus(errorAlertRef);
       return;
     }
     if (acceptedTermsAndConditions !== 'SI') {
       setErrorMessage(
         'Debes aceptar los términos y condiciones de participación (Sección 16) seleccionando "SI".'
       );
+      scrollToTopAndFocus(errorAlertRef);
       return;
     }
 
@@ -263,15 +292,18 @@ export default function RegisterFormClient({
       acceptedTermsAndConditions: acceptedTermsAndConditions as TermsAcceptanceOption,
     };
 
-    registerAsistenciaSync(fullDataPayload);
+    // Sincronizar asistencia y capturar si el registro era un duplicado
+    const res = await registerAsistenciaSync(fullDataPayload);
+    setIsAlreadyRegistered(Boolean(res.isAlreadyRegistered));
     setHasPreviousData(true);
 
     setErrorMessage('');
     setStep(3);
+    scrollToTopAndFocus(ticketHeaderRef);
   };
 
   return (
-    <div className="register-client-container">
+    <div className="register-client-container" ref={containerRef}>
       {/* Indicadores intuitivos de progreso (Paso 1 de 2 / Paso 2 de 2) */}
       {step < 3 && (
         <nav className="step-progress-wrapper" aria-label="Progreso de Registro">
@@ -285,7 +317,12 @@ export default function RegisterFormClient({
             <button
               type="button"
               className={`step-pill ${step === 1 ? 'is-active' : 'is-completed'}`}
-              onClick={() => step === 2 && setStep(1)}
+              onClick={() => {
+                if (step === 2) {
+                  setStep(1);
+                  scrollToTopAndFocus();
+                }
+              }}
               title={step === 2 ? 'Volver al Paso 1 para cambiar código' : undefined}
             >
               <span className="pill-badge">{step > 1 ? '✓' : '1'}</span>
@@ -312,7 +349,7 @@ export default function RegisterFormClient({
 
       {/* Alerta de error en caso de omisiones o inconformidades */}
       {errorMessage && (
-        <div className="form-error-alert" role="alert">
+        <div className="form-error-alert" role="alert" ref={errorAlertRef} tabIndex={-1} style={{ outline: 'none' }}>
           <span>⚠️ {errorMessage}</span>
         </div>
       )}
@@ -535,9 +572,34 @@ export default function RegisterFormClient({
       {step === 3 && (
         <section className="success-ticket-card">
           <div className="ticket-header">
-            <span className="ticket-badge-success">Asistencia Oficial Confirmada</span>
-            <h2>¡Registro Completado con Éxito!</h2>
-            <p>Alcaldía de Montería • Ronda Vive en la Calle 27 con Av. Primera</p>
+            {isAlreadyRegistered ? (
+              <span
+                className="ticket-badge-notice"
+                style={{
+                  backgroundColor: '#e0f2fe',
+                  color: '#0369a1',
+                  padding: '0.4rem 0.8rem',
+                  borderRadius: '0.5rem',
+                  fontWeight: 600,
+                  fontSize: '0.85rem',
+                  display: 'inline-block',
+                  marginBottom: '0.5rem',
+                  border: '1px solid #bae6fd',
+                }}
+              >
+                ℹ️ Asistencia Previamente Registrada (Datos Actualizados)
+              </span>
+            ) : (
+              <span className="ticket-badge-success">Asistencia Oficial Confirmada</span>
+            )}
+            <h2 ref={ticketHeaderRef} tabIndex={-1} style={{ outline: 'none' }}>
+              {isAlreadyRegistered ? '¡Asistencia Reconfirmada con Éxito!' : '¡Registro Completado con Éxito!'}
+            </h2>
+            <p>
+              {isAlreadyRegistered
+                ? 'Ya contabas con un registro previo para esta jornada. Tus datos han sido actualizados y tu asistencia se reconfirmó.'
+                : 'Alcaldía de Montería • Ronda Vive en la Calle 27 con Av. Primera'}
+            </p>
           </div>
 
           {/* Resumen completo del asistente */}

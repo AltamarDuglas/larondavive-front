@@ -207,11 +207,18 @@ export async function createJornada(newJornada: Omit<JornadaRecord, 'id' | 'crea
 
 /**
  * Sincronizar un registro de asistencia en Supabase (y respaldo local).
+ * Detecta si el ciudadano ya contaba con un registro de asistencia previo para el mismo código de jornada.
+ *
+ * @param formData Datos completos del formulario del asistente y código del evento
+ * @returns Promesa con estado de éxito, bandera isAlreadyRegistered y posible mensaje de error
  */
 export async function registerAsistenciaSync(
   formData: RegistrationFormData & { code: string }
-): Promise<{ success: boolean; error?: string }> {
+): Promise<{ success: boolean; isAlreadyRegistered: boolean; error?: string }> {
   try {
+    let isAlreadyRegistered = false;
+
+    // 1. Manejo y respaldo en almacenamiento local del navegador (localStorage)
     if (typeof window !== 'undefined') {
       localStorage.setItem('rv_attendee_full_data', JSON.stringify(formData));
       localStorage.setItem('rv_user_fullname', formData.fullName);
@@ -221,12 +228,26 @@ export async function registerAsistenciaSync(
       localStorage.setItem('rv_last_date', new Date().toLocaleDateString('es-CO'));
 
       const logsRaw = localStorage.getItem('rv_local_attendance_logs') || '[]';
-      const logs = JSON.parse(logsRaw);
-      logs.unshift({ ...formData, registered_at: new Date().toISOString() });
-      localStorage.setItem('rv_local_attendance_logs', JSON.stringify(logs));
+      const logs: (RegistrationFormData & { code: string; registered_at: string })[] = JSON.parse(logsRaw);
+
+      // Verificar si ya existe un registro local previo para esta misma jornada y usuario
+      const existingLocal = logs.find(
+        (item) =>
+          item.code === formData.code &&
+          (item.phone === formData.phone || item.email.toLowerCase() === formData.email.toLowerCase())
+      );
+
+      if (existingLocal) {
+        isAlreadyRegistered = true;
+      } else {
+        logs.unshift({ ...formData, registered_at: new Date().toISOString() });
+        localStorage.setItem('rv_local_attendance_logs', JSON.stringify(logs));
+      }
     }
 
+    // 2. Sincronización en la base de datos de Supabase PostgreSQL
     if (supabase) {
+      // Upsert en la tabla de asistentes usando la restricción (phone, email)
       const { data: asistente, error: asistenteErr } = await supabase
         .from('asistentes')
         .upsert(
@@ -256,20 +277,37 @@ export async function registerAsistenciaSync(
         .single();
 
       if (!asistenteErr && asistente) {
-        await supabase.from('asistencias').insert([
-          {
-            jornada_code: formData.code,
-            asistente_id: asistente.id,
-            registered_at: new Date().toISOString(),
-          },
-        ]);
+        // Verificar si la relación jornada - asistente ya está registrada en la tabla asistencias
+        const { data: existingAsistencia } = await supabase
+          .from('asistencias')
+          .select('id')
+          .eq('jornada_code', formData.code)
+          .eq('asistente_id', asistente.id)
+          .maybeSingle();
+
+        if (existingAsistencia) {
+          isAlreadyRegistered = true;
+        } else {
+          const { error: asisErr } = await supabase.from('asistencias').insert([
+            {
+              jornada_code: formData.code,
+              asistente_id: asistente.id,
+              registered_at: new Date().toISOString(),
+            },
+          ]);
+
+          // Si falla por restricción única 23505 (uq_asistente_jornada), marcar como duplicado
+          if (asisErr && asisErr.code === '23505') {
+            isAlreadyRegistered = true;
+          }
+        }
       }
     }
 
-    return { success: true };
+    return { success: true, isAlreadyRegistered };
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : 'Error al registrar la asistencia.';
-    return { success: false, error: msg };
+    return { success: false, isAlreadyRegistered: false, error: msg };
   }
 }
 
