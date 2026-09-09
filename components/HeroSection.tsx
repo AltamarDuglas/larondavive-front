@@ -81,17 +81,13 @@ export default function HeroSection() {
           </p>
         </div>
 
-        {/* Únicamente los 2 botones de acción necesarios */}
+        {/* Botón principal de acción para registro */}
         <div className="clean-hero__actions">
           <Link
             href="/register"
-            className="clean-btn clean-btn--primary"
+            className="clean-btn clean-btn--primary clean-btn--lg"
           >
             Registrar mi Asistencia
-          </Link>
-
-          <Link href="/pass" className="clean-btn clean-btn--secondary">
-            Ver Mi Ronda Pass
           </Link>
         </div>
 

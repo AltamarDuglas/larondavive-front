@@ -62,7 +62,7 @@ export default function AdminQrModal({ jornada, isOpen, onClose }: AdminQrModalP
           <div className="qr-poster-head">
             <span className="poster-institution">ALCALDÍA DE MONTERÍA</span>
             <span className="poster-department">SECRETARÍA DE CULTURA</span>
-            <h2 className="poster-title">RONDA VIVE PASS</h2>
+            <h2 className="poster-title">RONDA VIVE</h2>
             <p className="poster-subtitle">Registro Oficial de Asistencia Ciudadana</p>
           </div>
 

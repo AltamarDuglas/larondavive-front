@@ -31,8 +31,8 @@ const flowSteps: FlowStep[] = [
   },
   {
     step: 4,
-    title: 'Consulta tu Historial',
-    description: 'Revisa las jornadas a las que has asistido y mantén activo tu registro en Mi Ronda Pass.'
+    title: 'Participación Continua',
+    description: 'Confirma tu presencia en cada jornada y fortalece el encuentro cultural en la Ronda del Sinú.'
   }
 ];
 

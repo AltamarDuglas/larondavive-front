@@ -801,11 +801,7 @@ export default function RegisterFormClient({
           </div>
 
           <div className="ticket-actions">
-            <Link href="/pass" className="clean-btn clean-btn--primary">
-              Ver Mi Ronda Pass
-            </Link>
-
-            <Link href="/" className="clean-btn clean-btn--secondary">
+            <Link href="/" className="clean-btn clean-btn--primary clean-btn--lg">
               Volver al Inicio
             </Link>
           </div>

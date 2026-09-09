@@ -674,7 +674,7 @@ export function exportToPDF(
   doc.setFontSize(8.5);
   doc.setFont('helvetica', 'normal');
   doc.text(
-    `Plataforma Ronda Vive Pass • Calle 27 con Av. Primera • Fecha: ${new Date().toLocaleDateString('es-CO')}`,
+    `Plataforma Ronda Vive • Calle 27 con Av. Primera • Fecha: ${new Date().toLocaleDateString('es-CO')}`,
     14,
     33
   );

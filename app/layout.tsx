@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Ronda Vive Pass | Jornada, fotos y comunidad',
+  title: 'Ronda Vive | Jornada, fotos y comunidad',
   description: 'Plataforma digital para registro por QR, album colectivo, progreso y panel administrativo.'
 };
 

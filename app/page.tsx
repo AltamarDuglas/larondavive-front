@@ -7,7 +7,7 @@ import { useState } from 'react';
 
 /**
  * Importación de los componentes sobrios estructurados bajo la metodología SOLID:
- * - IntroAnimation: Presentación secuencial sobria (Alcaldía de Montería -> La Ronda Vive Pass).
+ * - IntroAnimation: Presentación secuencial sobria (Alcaldía de Montería -> La Ronda Vive).
  * - HeaderNav: Encabezado flotante con el sello de la Alcaldía de Montería.
  * - HeroSection: Banner principal centrado en el registro de asistencia por QR en Calle 27 con Av. Primera.
  * - CitizenFlow: Proceso directo de 4 pasos para el registro del ciudadano.
@@ -25,7 +25,7 @@ import Footer from '../components/Footer';
 
 /**
  * Componente HomePage (Pantalla Principal)
- * Ensambla la estructura limpia y profesional de Ronda Vive Pass.
+ * Ensambla la estructura limpia y profesional de Ronda Vive.
  */
 export default function HomePage() {
   // Estado numérico para reiniciar la animación de inicio a solicitud del usuario
@@ -40,7 +40,7 @@ export default function HomePage() {
 
   return (
     <div className="home-page-container">
-      {/* 1. Presentación introductoria (Alcaldía de Montería -> La Ronda Vive Pass) */}
+      {/* 1. Presentación introductoria (Alcaldía de Montería -> La Ronda Vive) */}
       <IntroAnimation replayKey={replayKey} />
 
       {/* 2. Barra de navegación institucional */}
