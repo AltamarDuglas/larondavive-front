@@ -175,7 +175,76 @@ export async function getJornadas(): Promise<JornadaRecord[]> {
       event_date: '2026-09-15',
       status: 'activa',
     },
+    {
+      code: 'RV-220926',
+      title: 'Jornada Ronda Vive Arte & Río',
+      location: 'Calle 27 con Avenida Primera, Montería',
+      event_date: '2026-09-22',
+      status: 'programada',
+    },
+    {
+      code: 'RV-080926',
+      title: 'Jornada Ronda Vive Tradición',
+      location: 'Calle 27 con Avenida Primera, Montería',
+      event_date: '2026-09-08',
+      status: 'finalizada',
+    },
   ];
+}
+
+/**
+ * Valida la existencia y el estado de vigencia (fecha y estatus) de un código de jornada.
+ *
+ * @param codeInput Código de la jornada a validar (ej: 'RV-150926')
+ * @returns Objeto de resultado con banderas isValid, isExpired, registro de jornada y mensaje descriptivo de error
+ */
+export async function validateJornadaCode(codeInput: string): Promise<{
+  isValid: boolean;
+  isExpired: boolean;
+  jornada?: JornadaRecord;
+  error?: string;
+}> {
+  const cleanCode = codeInput.trim().toUpperCase();
+  if (!cleanCode) {
+    return {
+      isValid: false,
+      isExpired: false,
+      error: 'Por favor ingresa un código de jornada válido.',
+    };
+  }
+
+  // Obtener catálogo completo de jornadas disponibles
+  const jornadas = await getJornadas();
+  const match = jornadas.find((j) => j.code.toUpperCase() === cleanCode);
+
+  // 1. Si no existe coincidencia con el código
+  if (!match) {
+    return {
+      isValid: false,
+      isExpired: false,
+      error: `La jornada con código "${cleanCode}" no existe en el sistema. Verifica el código impreso o escaneado e intenta nuevamente.`,
+    };
+  }
+
+  // 2. Comprobar fecha de vencimiento y estado institucional de la jornada
+  const todayStr = new Date().toISOString().split('T')[0];
+  const isStatusFinalized = match.status === 'finalizada';
+  const isPastDate = match.event_date ? match.event_date < todayStr : false;
+
+  if (isStatusFinalized || isPastDate) {
+    return {
+      isValid: true,
+      isExpired: true,
+      jornada: match,
+      error: `La jornada "${match.title}" (${match.code}) ya ha finalizado. No es posible registrar asistencias para jornadas pasadas.`,
+    };
+  }
+
+  return {
+    isValid: true,
+    isExpired: false,
+    jornada: match,
+  };
 }
 
 /**

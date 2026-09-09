@@ -26,7 +26,7 @@ import {
   TermsAcceptanceOption,
 } from '../types/registration';
 
-import { registerAsistenciaSync } from '../lib/supabaseClient';
+import { registerAsistenciaSync, validateJornadaCode } from '../lib/supabaseClient';
 
 /**
  * Interfaz de propiedades para RegisterFormClient.
@@ -41,7 +41,7 @@ export interface RegisterFormClientProps {
 /**
  * Componente RegisterFormClient (Flujo para Asistentes Nuevos y Recurrentes)
  * Responsabilidad Única (SRP): Controlar la secuencia interactiva de registro para la Alcaldía de Montería.
- * Detección directa de QR (salta al Paso 2), tarjeta colapsable para asistentes ya registrados, y gestión de foco/scroll.
+ * Detección directa de QR (salta al Paso 2 si es válido), tarjeta colapsable para asistentes ya registrados, y gestión de foco/scroll.
  */
 export default function RegisterFormClient({
   initialCode = 'RV-150926',
@@ -57,7 +57,7 @@ export default function RegisterFormClient({
   const urlParamCode = searchParams.get('code');
   const paramCode = urlParamCode || initialCode;
 
-  // Si hay código en la URL (escaneo QR), ingresa directamente al Paso 2
+  // Paso actual (1: Código, 2: Formulario, 3: Ticket)
   const [step, setStep] = useState<1 | 2 | 3>(urlParamCode ? 2 : 1);
 
   // Indica si el asistente ya cuenta con datos previos guardados en el dispositivo
@@ -162,24 +162,41 @@ export default function RegisterFormClient({
   }, []);
 
   /**
-   * Detección directa del escaneo QR proveniente del parámetro URL
+   * Detección directa y validación del escaneo QR proveniente del parámetro URL
    */
   useEffect(() => {
     if (urlParamCode) {
       setCode(urlParamCode);
-      setStep(2);
+      validateJornadaCode(urlParamCode).then((validation) => {
+        if (!validation.isValid || validation.isExpired) {
+          setErrorMessage(validation.error || 'La jornada escaneada no está disponible.');
+          setStep(1);
+          scrollToTopAndFocus(errorAlertRef);
+        } else {
+          setStep(2);
+        }
+      });
     }
   }, [urlParamCode]);
 
   /**
-   * Manejador del Paso 1: Validar e ingresar el código de asistencia
+   * Manejador del Paso 1: Validar existencia e ingreso del código de asistencia
    */
-  const handleValidateCode = (e: React.FormEvent) => {
+  const handleValidateCode = async (e: React.FormEvent) => {
     e.preventDefault();
     const cleanCode = code.trim();
 
     if (!cleanCode) {
       setErrorMessage('Por favor ingresa un código de asistencia válido.');
+      scrollToTopAndFocus(errorAlertRef);
+      return;
+    }
+
+    // Validar existencia y estado de vigencia de la jornada
+    const validation = await validateJornadaCode(cleanCode);
+
+    if (!validation.isValid || validation.isExpired) {
+      setErrorMessage(validation.error || 'La jornada ingresada no es válida.');
       scrollToTopAndFocus(errorAlertRef);
       return;
     }
