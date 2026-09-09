@@ -6,18 +6,17 @@ interface AdminJornadasTabProps {
   jornadas: JornadaRecord[];
   onCreateJornada: () => void;
   onSelectQrJornada: (jornada: JornadaRecord) => void;
-}
-
-function getStatusLabel(status: JornadaRecord["status"]) {
-  if (status === "activa") return "Activa";
-  if (status === "programada") return "Programada";
-  return "Finalizada";
+  onUpdateStatus?: (
+    code: string,
+    newStatus: "activa" | "programada" | "finalizada"
+  ) => void;
 }
 
 export default function AdminJornadasTab({
   jornadas,
   onCreateJornada,
   onSelectQrJornada,
+  onUpdateStatus,
 }: AdminJornadasTabProps) {
   return (
     <section className="admin-tab-content">
@@ -26,7 +25,7 @@ export default function AdminJornadasTab({
           <div>
             <h3>Jornadas de Ronda Vive Registradas</h3>
             <p className="card-desc">
-              Códigos QR oficiales, fechas de ejecución y estado de actividad.
+              Códigos QR oficiales, fechas de ejecución y gestión interactiva de estado.
             </p>
           </div>
           <button
@@ -45,7 +44,7 @@ export default function AdminJornadasTab({
                 <th>Código QR</th>
                 <th>Título de la Jornada</th>
                 <th>Fecha</th>
-                <th>Estado</th>
+                <th>Estado de Actividad</th>
                 <th>Acciones</th>
               </tr>
             </thead>
@@ -58,9 +57,28 @@ export default function AdminJornadasTab({
                   <td>{j.title}</td>
                   <td>{j.event_date}</td>
                   <td>
-                    <span className={`status-badge status-${j.status}`}>
-                      {getStatusLabel(j.status)}
-                    </span>
+                    <select
+                      value={j.status}
+                      onChange={(e) =>
+                        onUpdateStatus?.(
+                          j.code,
+                          e.target.value as "activa" | "programada" | "finalizada"
+                        )
+                      }
+                      className={`status-badge status-${j.status}`}
+                      style={{
+                        border: "1px solid rgba(0, 0, 0, 0.1)",
+                        cursor: "pointer",
+                        outline: "none",
+                        fontWeight: 600,
+                        fontSize: "0.85rem",
+                      }}
+                      title="Haz clic para cambiar el estado de la jornada"
+                    >
+                      <option value="activa">Activa</option>
+                      <option value="programada">Programada</option>
+                      <option value="finalizada">Finalizada</option>
+                    </select>
                   </td>
                   <td>
                     <button

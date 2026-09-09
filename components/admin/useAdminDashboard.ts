@@ -8,6 +8,7 @@ import {
   getAdminSession,
   signInAdmin,
   signOutAdmin,
+  updateJornadaStatus,
 } from "@/lib/supabaseClient";
 import {
   AdminTab,
@@ -124,6 +125,17 @@ export function useAdminDashboard() {
     loadRealSupabaseData();
   };
 
+  const handleUpdateJornadaStatus = async (
+    code: string,
+    newStatus: "activa" | "programada" | "finalizada"
+  ) => {
+    setJornadas((prev) =>
+      prev.map((j) => (j.code === code ? { ...j, status: newStatus } : j))
+    );
+    await updateJornadaStatus(code, newStatus);
+    loadRealSupabaseData();
+  };
+
   const filteredAsistentes = useMemo(
     () =>
       asistentes.filter((item) => {
@@ -167,6 +179,7 @@ export function useAdminDashboard() {
     handleExportExcel,
     handleExportPDF,
     handleJornadaCreated,
+    handleUpdateJornadaStatus,
     handleLogin,
     handleLogout,
     isAuthenticated,

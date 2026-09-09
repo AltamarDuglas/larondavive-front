@@ -1,8 +1,15 @@
 'use client';
 
+/**
+ * Importaciones de React y Next.js.
+ * - useState, useEffect, useRef: Manejo de estado interactivo, escáner de cámara QR y accesibilidad.
+ * - useSearchParams: Lectura de parámetros URL.
+ * - Link: Navegación del cliente sin recargar la página.
+ */
 import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { Html5Qrcode } from 'html5-qrcode';
 
 /**
  * Importaciones de subcomponentes modulares de formulario (Principio SOLID - SRP).
@@ -41,41 +48,43 @@ export interface RegisterFormClientProps {
 /**
  * Componente RegisterFormClient (Flujo para Asistentes Nuevos y Recurrentes)
  * Responsabilidad Única (SRP): Controlar la secuencia interactiva de registro para la Alcaldía de Montería.
- * Detección directa de QR (salta al Paso 2 si es válido), tarjeta colapsable para asistentes ya registrados, y gestión de foco/scroll.
+ * Incluye escáner de código QR por cámara, formulario limpio por defecto y remoción total de emojis.
  */
 export default function RegisterFormClient({
   initialCode = 'RV-150926',
 }: RegisterFormClientProps) {
   const searchParams = useSearchParams();
 
-  // Referencias DOM para gestión accesible de foco y desplazamiento al tope de pantalla
+  // Referencias DOM para gestión accesible de foco, scroll y visor de cámara QR
   const containerRef = useRef<HTMLDivElement>(null);
   const ticketHeaderRef = useRef<HTMLHeadingElement>(null);
   const errorAlertRef = useRef<HTMLDivElement>(null);
+  const qrScannerInstanceRef = useRef<Html5Qrcode | null>(null);
 
-  // Código obtenido del parámetro URL '?code=...' si el usuario escaneó el QR
+  // Código obtenido del parámetro URL '?code=...' si el usuario escaneó un QR externo
   const urlParamCode = searchParams.get('code');
   const paramCode = urlParamCode || initialCode;
 
-  // Paso actual (1: Código, 2: Formulario, 3: Ticket)
+  // Paso actual (1: Validación de Código / Cámara, 2: Formulario, 3: Ticket Confirmación)
   const [step, setStep] = useState<1 | 2 | 3>(urlParamCode ? 2 : 1);
 
-  // Indica si el asistente ya cuenta con datos previos guardados en el dispositivo
+  // Estado para controlar la activación de la cámara escáner de QR
+  const [isScanningQR, setIsScanningQR] = useState<boolean>(false);
+
+  // Indica si existen datos previos guardados localmente para ofrecer autocompletado opcional
   const [hasPreviousData, setHasPreviousData] = useState<boolean>(false);
-  // Estado para controlar el despliegue del formulario completo cuando el usuario es recurrente
-  const [isFormExpanded, setIsFormExpanded] = useState<boolean>(false);
   // Estado para indicar si el usuario ya estaba registrado previamente en la jornada actual
   const [isAlreadyRegistered, setIsAlreadyRegistered] = useState<boolean>(false);
 
   // ==========================================================================
-  // ESTADO DEL FORMULARIO DE ASISTENTE
+  // ESTADO DEL FORMULARIO DE ASISTENTE (INICIALIZADO TOTALMENTE LIMPIO)
   // ==========================================================================
   const [code, setCode] = useState<string>(paramCode);
   const [fullName, setFullName] = useState<string>('');
   const [phone, setPhone] = useState<string>('');
   const [email, setEmail] = useState<string>('');
 
-  // 4. Información sociodemográfica
+  // Información sociodemográfica
   const [ageRange, setAgeRange] = useState<AgeRangeOption | ''>('');
   const [genderIdentity, setGenderIdentity] = useState<GenderIdentityOption | ''>('');
   const [bornInMonteria, setBornInMonteria] = useState<boolean>(true);
@@ -83,12 +92,12 @@ export default function RegisterFormClient({
   const [attendedWithChildren, setAttendedWithChildren] = useState<boolean>(false);
   const [childrenCount, setChildrenCount] = useState<number>(0);
 
-  // 7. Ubicación territorial
+  // Ubicación territorial
   const [comuna, setComuna] = useState<ComunaOption | ''>('');
   const [barrio, setBarrio] = useState<string>('');
   const [zone, setZone] = useState<ZoneOption | ''>('Urbana');
 
-  // 8. Autorreconocimiento poblacional
+  // Autorreconocimiento poblacional
   const [populationGroup, setPopulationGroup] = useState<PopulationGroupOption | ''>('Ninguno');
   const [socialGroup, setSocialGroup] = useState<SocialGroupOption | ''>('Ninguno');
   const [otherSocialGroupSpec, setOtherSocialGroupSpec] = useState<string>('');
@@ -102,8 +111,7 @@ export default function RegisterFormClient({
   const [errorMessage, setErrorMessage] = useState<string>('');
 
   /**
-   * Función de utilidad para desplazar suavemente al tope de pantalla y colocar el foco
-   * en el elemento de interés (Encabezado de Ticket o Alerta de Error).
+   * Desplaza la pantalla suavemente al tope y coloca el foco en el elemento indicado
    */
   const scrollToTopAndFocus = (targetRef?: React.RefObject<HTMLElement | null>) => {
     if (typeof window !== 'undefined') {
@@ -117,9 +125,23 @@ export default function RegisterFormClient({
   };
 
   /**
-   * Carga de datos previos guardados en el navegador (asistente recurrente)
+   * Verifica la presencia de datos anteriores sin forzar el autocompletado automático
    */
   useEffect(() => {
+    try {
+      const savedDataRaw = localStorage.getItem('rv_attendee_full_data');
+      if (savedDataRaw) {
+        setHasPreviousData(true);
+      }
+    } catch {
+      // Ignorar excepciones de lectura de localStorage
+    }
+  }, []);
+
+  /**
+   * Cargar datos anteriores manualmente si el usuario lo solicita explícitamente
+   */
+  const handleLoadPreviousData = () => {
     try {
       const savedDataRaw = localStorage.getItem('rv_attendee_full_data');
       if (savedDataRaw) {
@@ -140,26 +162,41 @@ export default function RegisterFormClient({
         if (parsed.populationGroup) setPopulationGroup(parsed.populationGroup);
         if (parsed.socialGroup) setSocialGroup(parsed.socialGroup);
         if (parsed.otherSocialGroupSpec) setOtherSocialGroupSpec(parsed.otherSocialGroupSpec);
-
-        if (parsed.fullName && parsed.phone && parsed.email) {
-          setHasPreviousData(true);
-        }
-      } else {
-        // Fallback a llaves individuales anteriores
-        const savedName = localStorage.getItem('rv_user_fullname');
-        const savedPhone = localStorage.getItem('rv_user_phone');
-        const savedEmail = localStorage.getItem('rv_user_email');
-        if (savedName) setFullName(savedName);
-        if (savedPhone) setPhone(savedPhone);
-        if (savedEmail) setEmail(savedEmail);
-        if (savedName && savedPhone && savedEmail) {
-          setHasPreviousData(true);
-        }
       }
     } catch {
-      // Ignorar excepciones de lectura de localStorage
+      // Ignorar excepciones
     }
-  }, []);
+  };
+
+  /**
+   * Limpia totalmente el formulario y los datos guardados en el navegador
+   */
+  const handleClearSavedData = () => {
+    try {
+      localStorage.removeItem('rv_attendee_full_data');
+      localStorage.removeItem('rv_user_fullname');
+      localStorage.removeItem('rv_user_phone');
+      localStorage.removeItem('rv_user_email');
+    } catch {
+      // Ignorar
+    }
+    setHasPreviousData(false);
+    setFullName('');
+    setPhone('');
+    setEmail('');
+    setAgeRange('');
+    setGenderIdentity('');
+    setBornInMonteria(true);
+    setBirthLocation('Montería (Córdoba)');
+    setAttendedWithChildren(false);
+    setChildrenCount(0);
+    setComuna('');
+    setBarrio('');
+    setZone('Urbana');
+    setPopulationGroup('Ninguno');
+    setSocialGroup('Ninguno');
+    setOtherSocialGroupSpec('');
+  };
 
   /**
    * Detección directa y validación del escaneo QR proveniente del parámetro URL
@@ -180,6 +217,90 @@ export default function RegisterFormClient({
   }, [urlParamCode]);
 
   /**
+   * Inicia el escáner QR mediante la cámara del dispositivo
+   */
+  const startQRScanner = async () => {
+    setErrorMessage('');
+    setIsScanningQR(true);
+
+    setTimeout(async () => {
+      try {
+        const html5QrCode = new Html5Qrcode('qr-reader-viewport');
+        qrScannerInstanceRef.current = html5QrCode;
+
+        await html5QrCode.start(
+          { facingMode: 'environment' },
+          { fps: 10, qrbox: { width: 220, height: 220 } },
+          async (decodedText) => {
+            let extractedCode = decodedText.trim();
+            try {
+              if (extractedCode.includes('code=')) {
+                const url = new URL(extractedCode);
+                const qParam = url.searchParams.get('code');
+                if (qParam) extractedCode = qParam;
+              }
+            } catch {
+              // Si no es URL válida, usar el texto plano del QR
+            }
+
+            await stopQRScanner();
+            setCode(extractedCode);
+
+            // Validar la jornada obtenida de la cámara
+            const validation = await validateJornadaCode(extractedCode);
+            if (!validation.isValid || validation.isExpired) {
+              setErrorMessage(validation.error || 'La jornada escaneada no es válida.');
+              scrollToTopAndFocus(errorAlertRef);
+            } else {
+              setErrorMessage('');
+              setStep(2);
+              scrollToTopAndFocus();
+            }
+          },
+          () => {
+            // Cuadros no reconocidos ignorados silenciosamente
+          }
+        );
+      } catch (err: unknown) {
+        const msg =
+          err instanceof Error ? err.message : 'No se pudo activar la cámara del dispositivo.';
+        setErrorMessage(
+          'No se pudo acceder a la cámara del dispositivo. Verifica que hayas concedido los permisos de cámara en tu navegador.'
+        );
+        setIsScanningQR(false);
+        scrollToTopAndFocus(errorAlertRef);
+      }
+    }, 200);
+  };
+
+  /**
+   * Detiene el visor de la cámara de forma segura
+   */
+  const stopQRScanner = async () => {
+    if (qrScannerInstanceRef.current) {
+      try {
+        if (qrScannerInstanceRef.current.isScanning) {
+          await qrScannerInstanceRef.current.stop();
+        }
+        qrScannerInstanceRef.current.clear();
+      } catch {
+        // Ignorar excepciones al cerrar cámara
+      }
+      qrScannerInstanceRef.current = null;
+    }
+    setIsScanningQR(false);
+  };
+
+  // Detener la cámara al desmontar el componente
+  useEffect(() => {
+    return () => {
+      if (qrScannerInstanceRef.current) {
+        stopQRScanner();
+      }
+    };
+  }, []);
+
+  /**
    * Manejador del Paso 1: Validar existencia e ingreso del código de asistencia
    */
   const handleValidateCode = async (e: React.FormEvent) => {
@@ -192,7 +313,6 @@ export default function RegisterFormClient({
       return;
     }
 
-    // Validar existencia y estado de vigencia de la jornada
     const validation = await validateJornadaCode(cleanCode);
 
     if (!validation.isValid || validation.isExpired) {
@@ -219,7 +339,7 @@ export default function RegisterFormClient({
       return;
     }
 
-    // 2. Validación sociodemográfica (si está expandido o es primer registro)
+    // 2. Validación sociodemográfica
     if (!ageRange) {
       setErrorMessage('Por favor selecciona tu rango de edad (Sección 4.1).');
       scrollToTopAndFocus(errorAlertRef);
@@ -289,7 +409,6 @@ export default function RegisterFormClient({
       return;
     }
 
-    // Almacenar datos consolidados en localStorage y sincronizar con Supabase
     const fullDataPayload = {
       code: code.trim(),
       fullName: fullName.trim(),
@@ -311,7 +430,6 @@ export default function RegisterFormClient({
       acceptedTermsAndConditions: acceptedTermsAndConditions as TermsAcceptanceOption,
     };
 
-    // Sincronizar asistencia y capturar si el registro era un duplicado
     const res = await registerAsistenciaSync(fullDataPayload);
     setIsAlreadyRegistered(Boolean(res.isAlreadyRegistered));
     setHasPreviousData(true);
@@ -344,7 +462,15 @@ export default function RegisterFormClient({
               }}
               title={step === 2 ? 'Volver al Paso 1 para cambiar código' : undefined}
             >
-              <span className="pill-badge">{step > 1 ? '✓' : '1'}</span>
+              <span className="pill-badge">
+                {step > 1 ? (
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                ) : (
+                  '1'
+                )}
+              </span>
               <span className="pill-text">
                 <span className="pill-text-full">1. Código de Asistencia</span>
                 <span className="pill-text-short">1. Código</span>
@@ -366,26 +492,66 @@ export default function RegisterFormClient({
         </nav>
       )}
 
-      {/* Alerta de error en caso de omisiones o inconformidades */}
+      {/* Alerta de error en caso de omisiones o inconformidades (Sin emojis, usa icono SVG) */}
       {errorMessage && (
         <div className="form-error-alert" role="alert" ref={errorAlertRef} tabIndex={-1} style={{ outline: 'none' }}>
-          <span>⚠️ {errorMessage}</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginRight: '8px' }}>
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+          <span>{errorMessage}</span>
         </div>
       )}
 
       {/* ==========================================================================
-         PASO 1: PEDIR O CONFIRMAR EL CÓDIGO DE ASISTENCIA / QR
+         PASO 1: INGRESAR O ESCANEAR CON CÁMARA EL CÓDIGO DE JORNADA
          ========================================================================== */}
       {step === 1 && (
         <section className="form-step-card">
           <div className="form-step-head">
             <span className="eyebrow">Paso 1: Validación de Asistencia</span>
-            <h2>Ingresa el Código de la Jornada</h2>
+            <h2>Ingresa o Escanea el Código de la Jornada</h2>
             <p className="lede">
-              Introduce el código impreso en el pendón QR oficial o suministrado en la Calle 27 con
-              Avenida Primera.
+              Introduce el código escrito en el pendón de la jornada o usa la cámara de tu dispositivo para escanear el código QR.
             </p>
           </div>
+
+          {/* VISOR DE CÁMARA PARA ESCANEAR CÓDIGO QR */}
+          {isScanningQR ? (
+            <div className="qr-scanner-box" style={{ background: '#0f172a', padding: '1.25rem', borderRadius: '0.75rem', textAlign: 'center', marginBottom: '1.5rem', color: '#ffffff' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                <span style={{ fontWeight: 600, fontSize: '0.95rem' }}>Escanear Código QR en Vivo</span>
+                <button
+                  type="button"
+                  onClick={stopQRScanner}
+                  className="clean-btn clean-btn--secondary"
+                  style={{ padding: '0.3rem 0.8rem', fontSize: '0.85rem' }}
+                >
+                  Cerrar Cámara
+                </button>
+              </div>
+              <div id="qr-reader-viewport" style={{ width: '100%', maxWidth: '380px', margin: '0 auto', borderRadius: '0.5rem', overflow: 'hidden' }}></div>
+              <p style={{ fontSize: '0.8rem', color: '#94a3b8', marginTop: '0.75rem' }}>
+                Encuadra el código QR del pendón dentro del recuadro para detectar la jornada automáticamente.
+              </p>
+            </div>
+          ) : (
+            <div style={{ marginBottom: '1.5rem', textAlign: 'center' }}>
+              <button
+                type="button"
+                onClick={startQRScanner}
+                className="clean-btn clean-btn--secondary"
+                style={{ width: '100%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', padding: '0.75rem 1rem', fontSize: '0.95rem', fontWeight: 600 }}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                  <circle cx="12" cy="13" r="4"></circle>
+                </svg>
+                Escanear Código QR con Cámara
+              </button>
+            </div>
+          )}
 
           <form onSubmit={handleValidateCode} className="clean-form">
             <label className="form-group">
@@ -411,7 +577,7 @@ export default function RegisterFormClient({
       )}
 
       {/* ==========================================================================
-         PASO 2: FORMULARIO Y RECONOCIMIENTO DE ASISTENTE RECURRENTE
+         PASO 2: FORMULARIO DE CARACTERIZACIÓN Y DATOS DEL CIUDADANO
          ========================================================================== */}
       {step === 2 && (
         <section className="form-step-card">
@@ -429,159 +595,119 @@ export default function RegisterFormClient({
             </button>
           </div>
 
-          {/* VISTA RESUMIDA PARA ASISTENTE RECURRENTE (NO DESPLIEGA TODO EL FORMULARIO POR DEFECTO) */}
-          {hasPreviousData && !isFormExpanded ? (
-            <div className="recurring-attendee-card">
-              <div className="recurring-head">
-                <span className="recurring-badge">Asistente Registrado(a)</span>
-                <h2>¡Hola de nuevo, {fullName}!</h2>
-                <p className="lede">
-                  Reconocemos tus datos oficiales guardados en este dispositivo.
-                </p>
+          {/* NOTIFICACIÓN OPCIONAL DE DATOS PREVIOS GUARDADOS (PERMITE CARGAR O INICIAR REGISTRO LIMPIO) */}
+          {hasPreviousData && (
+            <div style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', padding: '0.85rem 1rem', borderRadius: '0.625rem', marginBottom: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <div style={{ fontSize: '0.875rem', color: '#334155', fontWeight: 500 }}>
+                Se encontraron datos registrados anteriormente en este navegador.
               </div>
-
-              <div className="recurring-summary-grid">
-                <div className="summary-card-item">
-                  <span className="summary-label">Nombre del Asistente</span>
-                  <strong className="summary-value">{fullName}</strong>
-                </div>
-                <div className="summary-card-item">
-                  <span className="summary-label">Teléfono Celular</span>
-                  <strong className="summary-value">{phone}</strong>
-                </div>
-                <div className="summary-card-item">
-                  <span className="summary-label">Correo Electrónico</span>
-                  <strong className="summary-value">{email}</strong>
-                </div>
-                {barrio && (
-                  <div className="summary-card-item">
-                    <span className="summary-label">Ubicación Registrada</span>
-                    <strong className="summary-value">
-                      {barrio} ({comuna})
-                    </strong>
-                  </div>
-                )}
-              </div>
-
-              {/* Acordeón para desplegar / modificar los datos sociodemográficos si lo requiere */}
-              <div className="recurring-accordion-box">
+              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                 <button
                   type="button"
-                  className="btn-toggle-accordion"
-                  onClick={() => setIsFormExpanded(true)}
+                  onClick={handleLoadPreviousData}
+                  className="clean-btn clean-btn--secondary"
+                  style={{ padding: '0.35rem 0.75rem', fontSize: '0.8rem' }}
                 >
-                  ✏️ Ver o modificar mi caracterización completa (Barrio, Edad, Niños, etc.)
+                  Cargar mis datos guardados
                 </button>
-              </div>
-
-              <div className="form-actions">
                 <button
                   type="button"
-                  onClick={handleSubmitData}
-                  className="clean-btn clean-btn--primary clean-btn--lg"
+                  onClick={handleClearSavedData}
+                  className="clean-btn"
+                  style={{ padding: '0.35rem 0.75rem', fontSize: '0.8rem', background: '#ffffff', color: '#64748b', border: '1px solid #cbd5e1' }}
                 >
-                  Confirmar Mi Asistencia ({code})
+                  Iniciar registro limpio / Otro ciudadano
                 </button>
               </div>
-            </div>
-          ) : (
-            /* VISTA DEL FORMULARIO COMPLETO */
-            <div>
-              <div className="form-step-head">
-                <span className="eyebrow">Paso 2: Caracterización y Registro</span>
-                <h2>Formulario Oficial de Asistente</h2>
-                <p className="lede">
-                  Ingresa tus datos personales, sociodemográficos y territoriales para registrar tu presencia
-                  oficial en la jornada de hoy.
-                </p>
-                {hasPreviousData && (
-                  <button
-                    type="button"
-                    className="btn-collapse-form"
-                    onClick={() => setIsFormExpanded(false)}
-                  >
-                    ▲ Ocultar formulario completo (Usar datos guardados)
-                  </button>
-                )}
-              </div>
-
-              <form onSubmit={handleSubmitData} className="clean-form">
-                {/* NOMBRE COMPLETO */}
-                <div className="form-group">
-                  <label className="form-label-text" htmlFor="fullname-input">
-                    Nombre Completo del Asistente <span className="req-star">*</span>
-                  </label>
-                  <input
-                    id="fullname-input"
-                    type="text"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    placeholder="Ej: María Pérez"
-                    className="clean-input"
-                    required
-                  />
-                </div>
-
-                {/* SECCIÓN 5: CANALES DE COMUNICACIÓN */}
-                <CommunicationSection
-                  phone={phone}
-                  onChangePhone={setPhone}
-                  email={email}
-                  onChangeEmail={setEmail}
-                />
-
-                {/* SECCIÓN 4: INFORMACIÓN SOCIODEMOGRÁFICA */}
-                <SociodemographicSection
-                  ageRange={ageRange}
-                  onChangeAgeRange={setAgeRange}
-                  genderIdentity={genderIdentity}
-                  onChangeGenderIdentity={setGenderIdentity}
-                  bornInMonteria={bornInMonteria}
-                  onChangeBornInMonteria={setBornInMonteria}
-                  birthLocation={birthLocation}
-                  onChangeBirthLocation={setBirthLocation}
-                  attendedWithChildren={attendedWithChildren}
-                  onChangeAttendedWithChildren={setAttendedWithChildren}
-                  childrenCount={childrenCount}
-                  onChangeChildrenCount={setChildrenCount}
-                />
-
-                {/* SECCIÓN 7: UBICACIÓN TERRITORIAL EN MONTERÍA */}
-                <TerritorialLocationSection
-                  barrio={barrio}
-                  onChangeBarrio={setBarrio}
-                  comuna={comuna}
-                  onChangeComuna={setComuna}
-                  zone={zone}
-                  onChangeZone={setZone}
-                />
-
-                {/* SECCIÓN 8: AUTORRECONOCIMIENTO POBLACIONAL */}
-                <PopulationRecognitionSection
-                  populationGroup={populationGroup}
-                  onChangePopulationGroup={setPopulationGroup}
-                  socialGroup={socialGroup}
-                  onChangeSocialGroup={setSocialGroup}
-                  otherSocialGroupSpec={otherSocialGroupSpec}
-                  onChangeOtherSocialGroupSpec={setOtherSocialGroupSpec}
-                />
-
-                {/* HABEAS DATA Y SECCIÓN 16: TÉRMINOS Y CONDICIONES */}
-                <TermsAndPrivacySection
-                  acceptedHabeasData={acceptedHabeasData}
-                  onChangeAcceptedHabeasData={setAcceptedHabeasData}
-                  acceptedTermsAndConditions={acceptedTermsAndConditions}
-                  onChangeAcceptedTermsAndConditions={setAcceptedTermsAndConditions}
-                />
-
-                <div className="form-actions">
-                  <button type="submit" className="clean-btn clean-btn--primary clean-btn--lg">
-                    Confirmar Mi Registro de Asistencia
-                  </button>
-                </div>
-              </form>
             </div>
           )}
+
+          <div>
+            <div className="form-step-head">
+              <span className="eyebrow">Paso 2: Caracterización y Registro</span>
+              <h2>Formulario Oficial de Asistente</h2>
+              <p className="lede">
+                Ingresa tus datos personales, sociodemográficos y territoriales para registrar tu presencia
+                oficial en la jornada de hoy.
+              </p>
+            </div>
+
+            <form onSubmit={handleSubmitData} className="clean-form">
+              {/* NOMBRE COMPLETO */}
+              <div className="form-group">
+                <label className="form-label-text" htmlFor="fullname-input">
+                  Nombre Completo del Asistente <span className="req-star">*</span>
+                </label>
+                <input
+                  id="fullname-input"
+                  type="text"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  placeholder="Ej: María Pérez"
+                  className="clean-input"
+                  required
+                />
+              </div>
+
+              {/* SECCIÓN 5: CANALES DE COMUNICACIÓN */}
+              <CommunicationSection
+                phone={phone}
+                onChangePhone={setPhone}
+                email={email}
+                onChangeEmail={setEmail}
+              />
+
+              {/* SECCIÓN 4: INFORMACIÓN SOCIODEMOGRÁFICA */}
+              <SociodemographicSection
+                ageRange={ageRange}
+                onChangeAgeRange={setAgeRange}
+                genderIdentity={genderIdentity}
+                onChangeGenderIdentity={setGenderIdentity}
+                bornInMonteria={bornInMonteria}
+                onChangeBornInMonteria={setBornInMonteria}
+                birthLocation={birthLocation}
+                onChangeBirthLocation={setBirthLocation}
+                attendedWithChildren={attendedWithChildren}
+                onChangeAttendedWithChildren={setAttendedWithChildren}
+                childrenCount={childrenCount}
+                onChangeChildrenCount={setChildrenCount}
+              />
+
+              {/* SECCIÓN 7: UBICACIÓN TERRITORIAL EN MONTERÍA */}
+              <TerritorialLocationSection
+                barrio={barrio}
+                onChangeBarrio={setBarrio}
+                comuna={comuna}
+                onChangeComuna={setComuna}
+                zone={zone}
+                onChangeZone={setZone}
+              />
+
+              {/* SECCIÓN 8: AUTORRECONOCIMIENTO POBLACIONAL */}
+              <PopulationRecognitionSection
+                populationGroup={populationGroup}
+                onChangePopulationGroup={setPopulationGroup}
+                socialGroup={socialGroup}
+                onChangeSocialGroup={setSocialGroup}
+                otherSocialGroupSpec={otherSocialGroupSpec}
+                onChangeOtherSocialGroupSpec={setOtherSocialGroupSpec}
+              />
+
+              {/* HABEAS DATA Y SECCIÓN 16: TÉRMINOS Y CONDICIONES */}
+              <TermsAndPrivacySection
+                acceptedHabeasData={acceptedHabeasData}
+                onChangeAcceptedHabeasData={setAcceptedHabeasData}
+                acceptedTermsAndConditions={acceptedTermsAndConditions}
+                onChangeAcceptedTermsAndConditions={setAcceptedTermsAndConditions}
+              />
+
+              <div className="form-actions">
+                <button type="submit" className="clean-btn clean-btn--primary clean-btn--lg">
+                  Confirmar Mi Registro de Asistencia
+                </button>
+              </div>
+            </form>
+          </div>
         </section>
       )}
 
@@ -606,13 +732,13 @@ export default function RegisterFormClient({
                   border: '1px solid #bae6fd',
                 }}
               >
-                ℹ️ Asistencia Previamente Registrada (Datos Actualizados)
+                Asistencia Previamente Registrada (Datos Actualizados)
               </span>
             ) : (
               <span className="ticket-badge-success">Asistencia Oficial Confirmada</span>
             )}
             <h2 ref={ticketHeaderRef} tabIndex={-1} style={{ outline: 'none' }}>
-              {isAlreadyRegistered ? '¡Asistencia Reconfirmada con Éxito!' : '¡Registro Completado con Éxito!'}
+              {isAlreadyRegistered ? 'Asistencia Reconfirmada con Éxito' : 'Registro Completado con Éxito'}
             </h2>
             <p>
               {isAlreadyRegistered
@@ -670,7 +796,7 @@ export default function RegisterFormClient({
 
             <div className="ticket-detail-item">
               <span className="item-label">Estado Legal</span>
-              <strong className="item-value">Habeas Data ✅ | Términos Aceptados (SI) ✅</strong>
+              <strong className="item-value">Habeas Data (Aceptado) | Términos (SI)</strong>
             </div>
           </div>
 

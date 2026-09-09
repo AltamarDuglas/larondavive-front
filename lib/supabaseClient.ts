@@ -275,6 +275,48 @@ export async function createJornada(newJornada: Omit<JornadaRecord, 'id' | 'crea
 }
 
 /**
+ * Actualiza el estado de una Jornada Institucional ('activa', 'programada' o 'finalizada') en Supabase.
+ *
+ * @param code Código único de la jornada a modificar
+ * @param newStatus Nuevo estado institucional a asignar
+ * @returns Promesa con estado booleano de éxito
+ */
+export async function updateJornadaStatus(
+  code: string,
+  newStatus: 'activa' | 'programada' | 'finalizada'
+): Promise<boolean> {
+  if (supabase) {
+    try {
+      const { error } = await supabase
+        .from('jornadas')
+        .update({ status: newStatus, updated_at: new Date().toISOString() })
+        .eq('code', code);
+
+      if (!error) {
+        return true;
+      }
+    } catch {
+      // Fallback
+    }
+  }
+
+  // Fallback local
+  if (typeof window !== 'undefined') {
+    const local = localStorage.getItem('rv_custom_jornadas');
+    if (local) {
+      try {
+        const list: JornadaRecord[] = JSON.parse(local);
+        const updated = list.map((j) => (j.code === code ? { ...j, status: newStatus } : j));
+        localStorage.setItem('rv_custom_jornadas', JSON.stringify(updated));
+      } catch {
+        // Ignorar
+      }
+    }
+  }
+  return true;
+}
+
+/**
  * Sincronizar un registro de asistencia en Supabase (y respaldo local).
  * Detecta si el ciudadano ya contaba con un registro de asistencia previo para el mismo código de jornada.
  *
