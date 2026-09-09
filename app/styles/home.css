@@ -1,10 +1,11 @@
 /**
- * Estilos de la Página Principal (Hero, Flujo Ciudadano, Privacidad, Estadísticas y Footer)
- * Metodología SOLID: Responsabilidad Única (SRP) - Componentes de la vista principal.
+ * Estilos de la Página Principal (Header, Hero, Flujo Ciudadano, Privacidad, Estadísticas y Footer)
+ * Ubicación: apps/web/app/styles/home.css
+ * Metodología: SOLID - Principio de Responsabilidad Única (SRP) - Componentes de la vista principal.
  */
 
 /* ==========================================================================
-   ENCABEZADO Y NAVEGACIÓN COMPACTA EN 1 LÍNEA (HeaderNav.tsx)
+   1. ENCABEZADO Y NAVEGACIÓN INSTITUCIONAL (HeaderNav.tsx)
    ========================================================================== */
 
 .site-header {
@@ -38,7 +39,7 @@
 }
 
 .brand-banner-img {
-  height: 52px;
+  height: 50px;
   width: auto;
   object-fit: contain;
   max-width: 220px;
@@ -52,7 +53,7 @@
 }
 
 .brand-ronda-logo {
-  height: 44px;
+  height: 42px;
   width: auto;
   object-fit: contain;
   max-width: 180px;
@@ -102,7 +103,7 @@
 }
 
 /* ==========================================================================
-   HERO ULTRA-LIMPIO Y DIRECTO (HeroSection.tsx)
+   2. HERO SECCIÓN DE BIENVENIDA (HeroSection.tsx)
    ========================================================================== */
 
 .clean-hero {
@@ -398,7 +399,7 @@
 }
 
 /* ==========================================================================
-   SECCIONES DE CONTENIDO INTERNO Y FLUJO DE PASOS (CitizenFlow.tsx)
+   3. SECCIÓN DE PASOS DEL FLUJO CIUDADANO (CitizenFlow.tsx)
    ========================================================================== */
 
 .page-content-wrapper {
@@ -516,4 +517,407 @@
   font-size: 0.9rem;
   line-height: 1.5;
   color: var(--text-muted);
+}
+
+/* ==========================================================================
+   4. TARJETA DE PROTECCIÓN DE DATOS DE HABEAS DATA (DataPrivacyCard.tsx)
+   ========================================================================== */
+
+.data-privacy-section {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.data-privacy-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.privacy-card {
+  background: var(--surface-white);
+  border: 1px solid var(--border-light);
+  border-radius: 20px;
+  padding: 24px 20px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: transform 160ms ease, border-color 160ms ease;
+}
+
+.privacy-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--border-blue);
+}
+
+.privacy-card__head h3 {
+  font-size: 1.1rem;
+  font-weight: 800;
+  margin: 0;
+  color: var(--text-main);
+}
+
+.privacy-card__text {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+/* ==========================================================================
+   5. SECCIÓN DE ESTADÍSTICAS MUNICIPALES (StatsSection.tsx)
+   ========================================================================== */
+
+.stats-dashboard-section {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.stats-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.stat-box {
+  background: var(--surface-white);
+  border: 1px solid var(--border-light);
+  border-radius: 20px;
+  padding: 22px 18px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: transform 160ms ease;
+}
+
+.stat-box:hover {
+  transform: translateY(-2px);
+}
+
+.stat-box--blue {
+  border-top: 4px solid var(--monteria-blue);
+}
+
+.stat-box--green {
+  border-top: 4px solid #16a34a;
+}
+
+.stat-box--red {
+  border-top: 4px solid var(--monteria-red);
+}
+
+.stat-box--purple {
+  border-top: 4px solid #8b5cf6;
+}
+
+.stat-box__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.stat-box__lbl {
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: var(--text-subtle);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stat-box__val {
+  font-size: 2.1rem;
+  font-weight: 900;
+  color: var(--text-main);
+  line-height: 1.1;
+  margin: 4px 0 2px;
+}
+
+.stat-box__sub {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.stats-highlight-banner {
+  background: rgba(37, 99, 235, 0.05);
+  border: 1px solid var(--border-blue);
+  border-radius: 20px;
+  padding: 24px;
+  text-align: center;
+}
+
+.banner-content {
+  max-width: 680px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.banner-content strong {
+  font-size: 1.1rem;
+  color: var(--monteria-blue-dark);
+}
+
+.banner-content p {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+/* ==========================================================================
+   6. PIE DE PÁGINA INSTITUCIONAL (Footer.tsx)
+   ========================================================================== */
+
+.site-footer {
+  background: #0f172a;
+  color: #f8fafc;
+  padding: 48px 20px 24px;
+  margin-top: 48px;
+  border-top: 4px solid var(--monteria-blue);
+}
+
+.site-footer__inner {
+  max-width: 1040px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 36px;
+}
+
+.site-footer__col {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.footer-brand strong {
+  font-size: 1.2rem;
+  color: #ffffff;
+}
+
+.footer-tagline {
+  margin: 0;
+  font-size: 0.92rem;
+  color: #94a3b8;
+}
+
+.footer-location {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.site-footer__col h4 {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #ffffff;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.footer-links {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.footer-links a {
+  color: #94a3b8;
+  font-size: 0.88rem;
+  transition: color 140ms ease;
+}
+
+.footer-links a:hover {
+  color: #ffffff;
+  text-decoration: underline;
+}
+
+.footer-text-sm {
+  margin: 0;
+  font-size: 0.84rem;
+  line-height: 1.5;
+  color: #94a3b8;
+}
+
+.site-footer__bottom {
+  max-width: 1040px;
+  margin: 36px auto 0;
+  padding-top: 20px;
+  border-top: 1px solid #1e293b;
+  text-align: center;
+  font-size: 0.82rem;
+  color: #64748b;
+}
+
+.site-footer__bottom p {
+  margin: 0;
+}
+
+/* ==========================================================================
+   7. ADAPTABILIDAD RESPONSIVA EN MÓVILES Y TABLETS
+   ========================================================================== */
+
+@media (max-width: 1024px) {
+  .flow-steps-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  .stats-cards-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+}
+
+@media (max-width: 840px) {
+  .data-privacy-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .site-footer__inner {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+}
+
+@media (max-width: 640px) {
+  .site-header {
+    padding: 10px 14px;
+  }
+
+  .site-header__inner {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .brand-banner-img {
+    height: 36px;
+    max-width: 130px;
+  }
+
+  .brand-ronda-logo {
+    height: 30px;
+    max-width: 100px;
+  }
+
+  .brand-divider-v {
+    height: 24px;
+  }
+
+  .nav-link {
+    padding: 4px 10px;
+    font-size: 0.78rem;
+  }
+
+  .nav-btn-intro {
+    padding: 4px 10px;
+    font-size: 0.76rem;
+  }
+
+  .clean-hero {
+    padding: 24px 16px 20px;
+  }
+
+  .clean-hero__title {
+    font-size: 1.8rem;
+  }
+
+  .clean-hero__subtitle {
+    font-size: 0.92rem;
+  }
+
+  .clean-hero__actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .clean-btn {
+    width: 100%;
+    min-height: 46px;
+  }
+
+  .page-content-wrapper {
+    padding: 0 14px;
+    margin: 16px auto 40px;
+    gap: 36px;
+  }
+
+  /* CRÍTICO: En móvil, las tarjetas del paso a paso se despliegan en 1 columna vertical holgada */
+  .flow-steps-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .flow-step-card {
+    padding: 20px 16px;
+    border-radius: 18px;
+  }
+
+  .flow-step-card__title {
+    font-size: 1.05rem;
+  }
+
+  .flow-step-card__desc {
+    font-size: 0.88rem;
+  }
+
+  /* Indicadores en 2 columnas en teléfonos */
+  .stats-cards-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .stat-box {
+    padding: 16px 14px;
+    border-radius: 16px;
+  }
+
+  .stat-box__val {
+    font-size: 1.7rem;
+  }
+
+  .stat-box__lbl {
+    font-size: 0.72rem;
+  }
+
+  .stat-box__sub {
+    font-size: 0.78rem;
+  }
+
+  .stats-highlight-banner {
+    padding: 18px 16px;
+    border-radius: 16px;
+  }
+
+  .banner-content strong {
+    font-size: 1rem;
+  }
+
+  .banner-content p {
+    font-size: 0.86rem;
+  }
+}
+
+@media (max-width: 420px) {
+  .stats-cards-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .brand-divider-v,
+  .brand-ronda-logo {
+    display: none;
+  }
 }
