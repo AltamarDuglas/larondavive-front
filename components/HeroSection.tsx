@@ -84,7 +84,7 @@ export default function HeroSection() {
         {/* Únicamente los 2 botones de acción necesarios */}
         <div className="clean-hero__actions">
           <Link
-            href="/register?event=RV-150926&code=RV-150926"
+            href="/register"
             className="clean-btn clean-btn--primary"
           >
             Registrar mi Asistencia

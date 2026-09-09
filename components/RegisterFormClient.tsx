@@ -51,7 +51,7 @@ export interface RegisterFormClientProps {
  * Incluye escáner de código QR por cámara, formulario limpio por defecto y remoción total de emojis.
  */
 export default function RegisterFormClient({
-  initialCode = 'RV-150926',
+  initialCode = '',
 }: RegisterFormClientProps) {
   const searchParams = useSearchParams();
 

@@ -28,8 +28,8 @@ type RegisterPageProps = {
  */
 export default async function RegisterPage({ searchParams }: RegisterPageProps) {
   const params = (await searchParams) ?? {};
-  const eventId = params.event ?? 'RV-150926';
-  const qrCode = params.code ?? 'RV-150926';
+  const eventId = params.event ?? '';
+  const qrCode = params.code ?? '';
 
   return (
     <div className="home-page-container">

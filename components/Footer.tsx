@@ -36,7 +36,7 @@ export default function Footer() {
               <Link href="/">Inicio / Presentación</Link>
             </li>
             <li>
-              <Link href="/register?event=RV-150926&code=RV-150926">Registrar Asistencia</Link>
+              <Link href="/register">Registrar Asistencia</Link>
             </li>
             <li>
               <Link href="/pass">Consultar Mi Registro</Link>
