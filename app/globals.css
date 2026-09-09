@@ -2604,28 +2604,29 @@ button.step-pill {
 
 .qr-image-wrapper {
   position: relative;
-  border: 3px solid #000000;
-  padding: 16px;
+  border: 2px solid #cbd5e1;
+  padding: 24px;
   background: #ffffff;
   border-radius: 16px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
 }
 
 .qr-code-img {
-  width: 240px;
-  height: 240px;
+  width: 290px;
+  height: 290px;
   object-fit: contain;
 }
 
 .qr-badge-code {
-  background: #2563eb;
+  background: #0f172a;
   color: #ffffff;
-  font-size: 1.2rem;
-  font-weight: 900;
-  padding: 6px 20px;
+  font-size: 1.1rem;
+  font-weight: 800;
+  padding: 8px 24px;
   border-radius: 999px;
   letter-spacing: 1px;
 }
