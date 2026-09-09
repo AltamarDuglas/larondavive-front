@@ -73,11 +73,13 @@ export default function RegisterFormClient({
 
   // Indica si existen datos previos guardados localmente para ofrecer autocompletado opcional
   const [hasPreviousData, setHasPreviousData] = useState<boolean>(false);
+  // Controla si se despliega el formulario completo de 5 secciones (para asistentes recurrentes se oculta por defecto)
+  const [showFullForm, setShowFullForm] = useState<boolean>(false);
   // Estado para indicar si el usuario ya estaba registrado previamente en la jornada actual
   const [isAlreadyRegistered, setIsAlreadyRegistered] = useState<boolean>(false);
 
   // ==========================================================================
-  // ESTADO DEL FORMULARIO DE ASISTENTE (INICIALIZADO TOTALMENTE LIMPIO)
+  // ESTADO DEL FORMULARIO DE ASISTENTE (INICIALIZADO Y CARGADO DE LOCALSTORAGE)
   // ==========================================================================
   const [code, setCode] = useState<string>(paramCode);
   const [fullName, setFullName] = useState<string>('');
@@ -125,23 +127,10 @@ export default function RegisterFormClient({
   };
 
   /**
-   * Verifica la presencia de datos anteriores sin forzar el autocompletado automático
+   * Carga automáticamente los datos guardados en el navegador al montar el componente.
+   * Si existen datos previos de visitas pasadas, el formulario no se despliega por defecto.
    */
   useEffect(() => {
-    try {
-      const savedDataRaw = localStorage.getItem('rv_attendee_full_data');
-      if (savedDataRaw) {
-        setHasPreviousData(true);
-      }
-    } catch {
-      // Ignorar excepciones de lectura de localStorage
-    }
-  }, []);
-
-  /**
-   * Cargar datos anteriores manualmente si el usuario lo solicita explícitamente
-   */
-  const handleLoadPreviousData = () => {
     try {
       const savedDataRaw = localStorage.getItem('rv_attendee_full_data');
       if (savedDataRaw) {
@@ -162,11 +151,16 @@ export default function RegisterFormClient({
         if (parsed.populationGroup) setPopulationGroup(parsed.populationGroup);
         if (parsed.socialGroup) setSocialGroup(parsed.socialGroup);
         if (parsed.otherSocialGroupSpec) setOtherSocialGroupSpec(parsed.otherSocialGroupSpec);
+
+        setHasPreviousData(true);
+        setShowFullForm(false); // No desplegar el formulario si ya hay datos cargados
+      } else {
+        setShowFullForm(true); // Desplegar formulario completo para usuario nuevo
       }
     } catch {
-      // Ignorar excepciones
+      setShowFullForm(true);
     }
-  };
+  }, []);
 
   /**
    * Limpia totalmente el formulario y los datos guardados en el navegador
@@ -181,6 +175,7 @@ export default function RegisterFormClient({
       // Ignorar
     }
     setHasPreviousData(false);
+    setShowFullForm(true);
     setFullName('');
     setPhone('');
     setEmail('');
@@ -595,119 +590,181 @@ export default function RegisterFormClient({
             </button>
           </div>
 
-          {/* NOTIFICACIÓN OPCIONAL DE DATOS PREVIOS GUARDADOS (PERMITE CARGAR O INICIAR REGISTRO LIMPIO) */}
-          {hasPreviousData && (
-            <div style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', padding: '0.85rem 1rem', borderRadius: '0.625rem', marginBottom: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              <div style={{ fontSize: '0.875rem', color: '#334155', fontWeight: 500 }}>
-                Se encontraron datos registrados anteriormente en este navegador.
-              </div>
-              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                <button
-                  type="button"
-                  onClick={handleLoadPreviousData}
-                  className="clean-btn clean-btn--secondary"
-                  style={{ padding: '0.35rem 0.75rem', fontSize: '0.8rem' }}
-                >
-                  Cargar mis datos guardados
-                </button>
-                <button
-                  type="button"
-                  onClick={handleClearSavedData}
-                  className="clean-btn"
-                  style={{ padding: '0.35rem 0.75rem', fontSize: '0.8rem', background: '#ffffff', color: '#64748b', border: '1px solid #cbd5e1' }}
-                >
-                  Iniciar registro limpio / Otro ciudadano
-                </button>
-              </div>
-            </div>
-          )}
-
-          <div>
-            <div className="form-step-head">
-              <span className="eyebrow">Paso 2: Caracterización y Registro</span>
-              <h2>Formulario Oficial de Asistente</h2>
-              <p className="lede">
-                Ingresa tus datos personales, sociodemográficos y territoriales para registrar tu presencia
-                oficial en la jornada de hoy.
-              </p>
-            </div>
-
-            <form onSubmit={handleSubmitData} className="clean-form">
-              {/* NOMBRE COMPLETO */}
-              <div className="form-group">
-                <label className="form-label-text" htmlFor="fullname-input">
-                  Nombre Completo del Asistente <span className="req-star">*</span>
-                </label>
-                <input
-                  id="fullname-input"
-                  type="text"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  placeholder="Ej: María Pérez"
-                  className="clean-input"
-                  required
-                />
+          {/* VISTA A: ASISTENTE RECURRENTE (DATOS PREVIOS CARGADOS AUTOMÁTICAMENTE Y FORMULARIO CONTRAÍDO POR DEFECTO) */}
+          {hasPreviousData && !showFullForm ? (
+            <div className="recurring-attendee-card">
+              <div className="recurring-head">
+                <span className="recurring-badge">Asistente Registrado / Recurrente</span>
+                <h2 style={{ fontFamily: 'Georgia, serif', fontSize: '1.6rem', margin: '4px 0 0', color: 'var(--text-main)' }}>
+                  ¡Hola de nuevo, {fullName || 'Asistente'}!
+                </h2>
+                <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-muted)' }}>
+                  Tus datos de la visita anterior se cargaron automáticamente. Confirma tu asistencia directamente o modifica tu información si lo deseas.
+                </p>
               </div>
 
-              {/* SECCIÓN 5: CANALES DE COMUNICACIÓN */}
-              <CommunicationSection
-                phone={phone}
-                onChangePhone={setPhone}
-                email={email}
-                onChangeEmail={setEmail}
-              />
+              <div className="recurring-summary-grid">
+                <div className="summary-card-item">
+                  <span className="summary-label">Nombre del Asistente</span>
+                  <strong className="summary-value">{fullName}</strong>
+                </div>
+                <div className="summary-card-item">
+                  <span className="summary-label">Canales de Contacto</span>
+                  <strong className="summary-value">{phone} • {email}</strong>
+                </div>
+                <div className="summary-card-item">
+                  <span className="summary-label">Ubicación en Montería</span>
+                  <strong className="summary-value">
+                    {barrio || 'Sin barrio'} ({comuna || 'Sin comuna'} • Zona {zone})
+                  </strong>
+                </div>
+                <div className="summary-card-item">
+                  <span className="summary-label">Lugar de Nacimiento</span>
+                  <strong className="summary-value">
+                    {bornInMonteria ? 'Montería (Córdoba)' : birthLocation}
+                  </strong>
+                </div>
+              </div>
 
-              {/* SECCIÓN 4: INFORMACIÓN SOCIODEMOGRÁFICA */}
-              <SociodemographicSection
-                ageRange={ageRange}
-                onChangeAgeRange={setAgeRange}
-                genderIdentity={genderIdentity}
-                onChangeGenderIdentity={setGenderIdentity}
-                bornInMonteria={bornInMonteria}
-                onChangeBornInMonteria={setBornInMonteria}
-                birthLocation={birthLocation}
-                onChangeBirthLocation={setBirthLocation}
-                attendedWithChildren={attendedWithChildren}
-                onChangeAttendedWithChildren={setAttendedWithChildren}
-                childrenCount={childrenCount}
-                onChangeChildrenCount={setChildrenCount}
-              />
-
-              {/* SECCIÓN 7: UBICACIÓN TERRITORIAL EN MONTERÍA */}
-              <TerritorialLocationSection
-                barrio={barrio}
-                onChangeBarrio={setBarrio}
-                comuna={comuna}
-                onChangeComuna={setComuna}
-                zone={zone}
-                onChangeZone={setZone}
-              />
-
-              {/* SECCIÓN 8: AUTORRECONOCIMIENTO POBLACIONAL */}
-              <PopulationRecognitionSection
-                populationGroup={populationGroup}
-                onChangePopulationGroup={setPopulationGroup}
-                socialGroup={socialGroup}
-                onChangeSocialGroup={setSocialGroup}
-                otherSocialGroupSpec={otherSocialGroupSpec}
-                onChangeOtherSocialGroupSpec={setOtherSocialGroupSpec}
-              />
-
-              {/* HABEAS DATA Y SECCIÓN 16: TÉRMINOS Y CONDICIONES */}
-              <TermsAndPrivacySection
-                acceptedHabeasData={acceptedHabeasData}
-                onChangeAcceptedHabeasData={setAcceptedHabeasData}
-                acceptedTermsAndConditions={acceptedTermsAndConditions}
-                onChangeAcceptedTermsAndConditions={setAcceptedTermsAndConditions}
-              />
-
-              <div className="form-actions">
+              <form onSubmit={handleSubmitData} className="clean-form" style={{ marginTop: '8px' }}>
                 <button type="submit" className="clean-btn clean-btn--primary clean-btn--lg">
                   Confirmar Mi Registro de Asistencia
                 </button>
+              </form>
+
+              <div className="recurring-accordion-box">
+                <button
+                  type="button"
+                  onClick={() => setShowFullForm(true)}
+                  className="btn-toggle-accordion"
+                >
+                  Modificar mis datos / Ver formulario completo
+                </button>
               </div>
-            </form>
-          </div>
+
+              <button
+                type="button"
+                onClick={handleClearSavedData}
+                className="btn-collapse-form"
+              >
+                Registrar a otro ciudadano / Limpiar datos
+              </button>
+            </div>
+          ) : (
+            /* VISTA B: FORMULARIO COMPLETO EXPANDIDO */
+            <div>
+              {hasPreviousData && (
+                <div style={{ background: 'rgba(37, 99, 235, 0.06)', border: '1px solid var(--border-blue)', padding: '10px 14px', borderRadius: '12px', marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+                  <span style={{ fontSize: '0.85rem', color: 'var(--monteria-blue-dark)', fontWeight: 700 }}>
+                    Datos cargados automáticamente de tu visita anterior.
+                  </span>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <button
+                      type="button"
+                      onClick={() => setShowFullForm(false)}
+                      className="btn-collapse-form"
+                      style={{ marginTop: 0 }}
+                    >
+                      Ocultar formulario
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleClearSavedData}
+                      className="btn-collapse-form"
+                      style={{ marginTop: 0, color: 'var(--monteria-red-dark)' }}
+                    >
+                      Otro ciudadano
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              <div className="form-step-head">
+                <span className="eyebrow">Paso 2: Caracterización y Registro</span>
+                <h2>Formulario Oficial de Asistente</h2>
+                <p className="lede">
+                  Ingresa tus datos personales, sociodemográficos y territoriales para registrar tu presencia
+                  oficial en la jornada de hoy.
+                </p>
+              </div>
+
+              <form onSubmit={handleSubmitData} className="clean-form">
+                {/* NOMBRE COMPLETO */}
+                <div className="form-group">
+                  <label className="form-label-text" htmlFor="fullname-input">
+                    Nombre Completo del Asistente <span className="req-star">*</span>
+                  </label>
+                  <input
+                    id="fullname-input"
+                    type="text"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    placeholder="Ej: María Pérez"
+                    className="clean-input"
+                    required
+                  />
+                </div>
+
+                {/* SECCIÓN 5: CANALES DE COMUNICACIÓN */}
+                <CommunicationSection
+                  phone={phone}
+                  onChangePhone={setPhone}
+                  email={email}
+                  onChangeEmail={setEmail}
+                />
+
+                {/* SECCIÓN 4: INFORMACIÓN SOCIODEMOGRÁFICA */}
+                <SociodemographicSection
+                  ageRange={ageRange}
+                  onChangeAgeRange={setAgeRange}
+                  genderIdentity={genderIdentity}
+                  onChangeGenderIdentity={setGenderIdentity}
+                  bornInMonteria={bornInMonteria}
+                  onChangeBornInMonteria={setBornInMonteria}
+                  birthLocation={birthLocation}
+                  onChangeBirthLocation={setBirthLocation}
+                  attendedWithChildren={attendedWithChildren}
+                  onChangeAttendedWithChildren={setAttendedWithChildren}
+                  childrenCount={childrenCount}
+                  onChangeChildrenCount={setChildrenCount}
+                />
+
+                {/* SECCIÓN 7: UBICACIÓN TERRITORIAL EN MONTERÍA */}
+                <TerritorialLocationSection
+                  barrio={barrio}
+                  onChangeBarrio={setBarrio}
+                  comuna={comuna}
+                  onChangeComuna={setComuna}
+                  zone={zone}
+                  onChangeZone={setZone}
+                />
+
+                {/* SECCIÓN 8: AUTORRECONOCIMIENTO POBLACIONAL */}
+                <PopulationRecognitionSection
+                  populationGroup={populationGroup}
+                  onChangePopulationGroup={setPopulationGroup}
+                  socialGroup={socialGroup}
+                  onChangeSocialGroup={setSocialGroup}
+                  otherSocialGroupSpec={otherSocialGroupSpec}
+                  onChangeOtherSocialGroupSpec={setOtherSocialGroupSpec}
+                />
+
+                {/* HABEAS DATA Y SECCIÓN 16: TÉRMINOS Y CONDICIONES */}
+                <TermsAndPrivacySection
+                  acceptedHabeasData={acceptedHabeasData}
+                  onChangeAcceptedHabeasData={setAcceptedHabeasData}
+                  acceptedTermsAndConditions={acceptedTermsAndConditions}
+                  onChangeAcceptedTermsAndConditions={setAcceptedTermsAndConditions}
+                />
+
+                <div className="form-actions">
+                  <button type="submit" className="clean-btn clean-btn--primary clean-btn--lg">
+                    Confirmar Mi Registro de Asistencia
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
         </section>
       )}
 
