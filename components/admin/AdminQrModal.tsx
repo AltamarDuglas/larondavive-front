@@ -175,7 +175,7 @@ export default function AdminQrModal({ jornada, isOpen, onClose }: AdminQrModalP
       doc.text('ALCALDÍA DE MONTERÍA • SECRETARÍA DE CULTURA', pageWidth / 2, 11, { align: 'center' });
 
       doc.setFontSize(16.5);
-      doc.setTextColor(0, 0, 0); // Debe ir blanco
+      doc.setTextColor(255, 255, 255); // Debe ir blanco1
       doc.text('LA RONDA VIVE', pageWidth / 2, 20, { align: 'center' });
 
       doc.setFont('helvetica', 'normal');
