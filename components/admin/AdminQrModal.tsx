@@ -3,7 +3,7 @@
 /**
  * Importaciones de React, Next.js y jsPDF.
  * Responsabilidad Única (SRP): Generación, presentación e impresión de pendones PDF en formato horizontal (landscape)
- * adornados con logos oficiales de la Alcaldía de Montería y La Ronda Vive.
+ * adornados con logos oficiales transparentes de la Alcaldía de Montería y La Ronda Vive.
  */
 import { useEffect, useState } from 'react';
 import NextImage from 'next/image';
@@ -14,12 +14,19 @@ import { JornadaRecord } from '../../lib/supabaseClient';
 import alcaldiaBanner from '../../app/imgs/alcaldia-banner.png';
 import alcaldiaLogo from '../../app/imgs/alcaldia-logo.jpg';
 import rondaViveLogo from '../../app/imgs/larondavive-logo.png';
-import rioSinu from '../../app/imgs/rio-sinu.jpg';
+import laRondaViveScaled from '../../app/imgs/la-ronda-vive-scaled.jpg';
 
 export interface AdminQrModalProps {
   jornada: JornadaRecord | null;
   isOpen: boolean;
   onClose: () => void;
+}
+
+interface ImageInfo {
+  dataUrl: string;
+  width: number;
+  height: number;
+  aspectRatio: number;
 }
 
 /**
@@ -36,12 +43,13 @@ function getCleanRegisterUrl(code: string): string {
 }
 
 /**
- * Convierte una imagen a Base64 utilizando HTML Canvas para renderizado nítido en jsPDF.
+ * Convierte una imagen a Base64 manteniendo la transparencia de archivos PNG (fillWhite = false).
+ * Retorna además la relación de aspecto (width / height) para evitar deformaciones en jsPDF.
  */
-function convertImgToBase64(imgSrc: string): Promise<string> {
-  return new Promise((resolve, reject) => {
+function convertImgToBase64(imgSrc: string, fillWhite = false): Promise<ImageInfo> {
+  return new Promise((resolve) => {
     if (typeof window === 'undefined') {
-      return resolve('');
+      return resolve({ dataUrl: '', width: 1, height: 1, aspectRatio: 1 });
     }
     const img = new window.Image();
     img.crossOrigin = 'Anonymous';
@@ -51,22 +59,31 @@ function convertImgToBase64(imgSrc: string): Promise<string> {
       canvas.height = img.naturalHeight || 1000;
       const ctx = canvas.getContext('2d');
       if (ctx) {
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        if (fillWhite) {
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+        } else {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
         ctx.drawImage(img, 0, 0);
-        resolve(canvas.toDataURL('image/png'));
+        resolve({
+          dataUrl: canvas.toDataURL('image/png'),
+          width: canvas.width,
+          height: canvas.height,
+          aspectRatio: canvas.width / canvas.height,
+        });
       } else {
-        reject(new Error('No se pudo obtener el contexto del canvas'));
+        resolve({ dataUrl: '', width: 1, height: 1, aspectRatio: 1 });
       }
     };
-    img.onerror = (err) => reject(err);
+    img.onerror = () => resolve({ dataUrl: '', width: 1, height: 1, aspectRatio: 1 });
     img.src = imgSrc;
   });
 }
 
 /**
  * Modal e Impresor de Códigos QR Oficiales para Pendón de la Alcaldía de Montería.
- * Genera un PDF horizontal (landscape) de alto impacto decorado con logos institucionales.
+ * Genera un PDF horizontal (landscape) de alto impacto decorado con logos institucionales transparentes.
  */
 export default function AdminQrModal({ jornada, isOpen, onClose }: AdminQrModalProps) {
   const [qrUrl, setQrUrl] = useState<string>('');
@@ -87,20 +104,20 @@ export default function AdminQrModal({ jornada, isOpen, onClose }: AdminQrModalP
 
   /**
    * Genera y descarga un PDF institucional en formato HORIZONTAL (Landscape A4: 297mm x 210mm)
-   * decorado con logos oficiales y donde el código QR es gigantesco y 100% libre de elementos encima.
+   * decorado con logos PNG transparentes sin deformación y donde el código QR es gigantesco y 100% limpio.
    */
   const handleDownloadPdf = async () => {
     if (!jornada || !qrUrl) return;
     setIsGeneratingPdf(true);
 
     try {
-      // 1. Cargar las imágenes oficiales en Base64 en paralelo
-      const [qrBase64, bannerB64, logoB64, rondaLogoB64, rioSinuB64] = await Promise.all([
-        convertImgToBase64(qrUrl),
-        convertImgToBase64(alcaldiaBanner.src).catch(() => ''),
-        convertImgToBase64(alcaldiaLogo.src).catch(() => ''),
-        convertImgToBase64(rondaViveLogo.src).catch(() => ''),
-        convertImgToBase64(rioSinu.src).catch(() => ''),
+      // 1. Cargar las imágenes oficiales en Base64 en paralelo respetando transparencia PNG
+      const [qrInfo, bannerInfo, logoInfo, rondaLogoInfo, rondaScaledInfo] = await Promise.all([
+        convertImgToBase64(qrUrl, true),
+        convertImgToBase64(alcaldiaBanner.src, false),
+        convertImgToBase64(alcaldiaLogo.src, false),
+        convertImgToBase64(rondaViveLogo.src, false),
+        convertImgToBase64(laRondaViveScaled.src, true),
       ]);
 
       // 2. Inicializar documento PDF en orientación HORIZONTAL (Landscape A4: 297mm x 210mm)
@@ -125,16 +142,20 @@ export default function AdminQrModal({ jornada, isOpen, onClose }: AdminQrModalP
       doc.setFillColor(5, 150, 105);
       doc.rect(0, 32, pageWidth, 3.5, 'F');
 
-      // Renderizar Banner o Logo de Alcaldía a la izquierda
-      if (bannerB64) {
-        doc.addImage(bannerB64, 'PNG', 8, 3, 52, 26);
-      } else if (logoB64) {
-        doc.addImage(logoB64, 'JPEG', 10, 3, 26, 26);
+      // Renderizar Banner o Logo de Alcaldía a la izquierda (respetando relación de aspecto y transparencia PNG)
+      if (bannerInfo.dataUrl) {
+        const logoH = 22;
+        const logoW = Math.min(logoH * bannerInfo.aspectRatio, 62);
+        doc.addImage(bannerInfo.dataUrl, 'PNG', 10, (32 - logoH) / 2, logoW, logoH);
+      } else if (logoInfo.dataUrl) {
+        doc.addImage(logoInfo.dataUrl, 'JPEG', 10, 4, 24, 24);
       }
 
-      // Renderizar Logo oficial de La Ronda Vive a la derecha
-      if (rondaLogoB64) {
-        doc.addImage(rondaLogoB64, 'PNG', pageWidth - 58, 3, 50, 26);
+      // Renderizar Logo oficial de La Ronda Vive a la derecha (transparente sin deformación)
+      if (rondaLogoInfo.dataUrl) {
+        const logoH = 22;
+        const logoW = Math.min(logoH * rondaLogoInfo.aspectRatio, 58);
+        doc.addImage(rondaLogoInfo.dataUrl, 'PNG', pageWidth - 10 - logoW, (32 - logoH) / 2, logoW, logoH);
       }
 
       // Textos centrales en el encabezado
@@ -154,16 +175,16 @@ export default function AdminQrModal({ jornada, isOpen, onClose }: AdminQrModalP
 
       // 5. DISTRIBUCIÓN EN 2 COLUMNAS (IZQUIERDA: INFORMACIÓN Y FOTO; DERECHA: QR GIGANTE)
 
-      // --- COLUMNA IZQUIERDA (x = 12mm a 142mm) ---
+      // --- COLUMNA IZQUIERDA (x = 14mm a 140mm) ---
       const leftColX = 14;
       const leftColWidth = 126;
 
-      // Foto de la Ronda del Sinú / evento
-      if (rioSinuB64) {
+      // Foto de La Ronda Vive en lugar del planchón
+      if (rondaScaledInfo.dataUrl) {
         doc.setDrawColor(203, 213, 225);
         doc.setLineWidth(0.5);
         doc.roundedRect(leftColX, 40, leftColWidth, 48, 3, 3, 'D');
-        doc.addImage(rioSinuB64, 'JPEG', leftColX + 0.5, 40.5, leftColWidth - 1, 47, undefined, 'FAST');
+        doc.addImage(rondaScaledInfo.dataUrl, 'JPEG', leftColX + 0.5, 40.5, leftColWidth - 1, 47, undefined, 'FAST');
       }
 
       // Título de la Jornada
@@ -244,11 +265,12 @@ export default function AdminQrModal({ jornada, isOpen, onClose }: AdminQrModalP
       doc.text('CÓDIGO QR OFICIAL DE ASISTENCIA', rightColX + rightColWidth / 2, qrBoxY + 6.5, { align: 'center' });
 
       // QR GIGANTE (122mm x 122mm) NÍTIDO Y TOTALMENTE LIMPIO (SIN NINGÚN ELEMENTO ENCIMA)
-      const qrSize = 122;
-      const qrX = rightColX + (rightColWidth - qrSize) / 2;
-      const qrY = qrBoxY + 13;
-
-      doc.addImage(qrBase64, 'PNG', qrX, qrY, qrSize, qrSize);
+      if (qrInfo.dataUrl) {
+        const qrSize = 122;
+        const qrX = rightColX + (rightColWidth - qrSize) / 2;
+        const qrY = qrBoxY + 13;
+        doc.addImage(qrInfo.dataUrl, 'PNG', qrX, qrY, qrSize, qrSize);
+      }
 
       // Pie del marco del QR (UBICADO DEBAJO DEL QR, SIN TAPARLO)
       doc.setFillColor(5, 150, 105);
@@ -258,15 +280,15 @@ export default function AdminQrModal({ jornada, isOpen, onClose }: AdminQrModalP
       doc.setFontSize(9.5);
       doc.text(`VÁLIDO PARA LA JORNADA: ${jornada.code}`, rightColX + rightColWidth / 2, qrBoxY + qrBoxHeight - 6.5, { align: 'center' });
 
-      // 6. Pie de página institucional
+      // 6. Pie de página institucional limpio
       doc.setDrawColor(226, 232, 240);
       doc.setLineWidth(0.4);
       doc.line(14, pageHeight - 12, pageWidth - 14, pageHeight - 12);
 
       doc.setTextColor(100, 116, 139);
       doc.setFont('helvetica', 'normal');
-      doc.setFontSize(8);
-      doc.text('Alcaldía de Montería — Secretaría de Cultura • Documento de Impresión Oficial Pendón QR en Formato Horizontal', pageWidth / 2, pageHeight - 6, { align: 'center' });
+      doc.setFontSize(8.5);
+      doc.text('Alcaldía de Montería — Secretaría de Cultura • Plataforma Digital Ronda Vive', pageWidth / 2, pageHeight - 6, { align: 'center' });
 
       // 7. Descargar archivo PDF
       doc.save(`Pendon_QR_Horizontal_RondaVive_${jornada.code}.pdf`);
@@ -336,8 +358,8 @@ export default function AdminQrModal({ jornada, isOpen, onClose }: AdminQrModalP
             <div className="poster-info-col">
               <div className="poster-photo-wrapper">
                 <NextImage
-                  src={rioSinu}
-                  alt="Ronda del Sinú"
+                  src={laRondaViveScaled}
+                  alt="La Ronda Vive"
                   width={340}
                   height={140}
                   style={{ objectFit: 'cover', borderRadius: '12px', width: '100%', height: '140px' }}
