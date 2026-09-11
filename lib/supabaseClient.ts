@@ -64,18 +64,19 @@ export const supabase: SupabaseClient | null = isSupabaseConfigured
   ? createClient(supabaseUrl, supabaseAnonKey)
   : null;
 
-// Credenciales institucionales por defecto (para acceso de demostración/desarrollo)
-const DEFAULT_ADMIN_EMAIL = process.env.NEXT_PUBLIC_ADMIN_EMAIL || 'admin@monteria.gov.co';
-const DEFAULT_ADMIN_PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || 'AdminMonteria2026!';
+// Credenciales institucionales desde variables de entorno (sin contraseñas de prueba quemadas en producción)
+const DEFAULT_ADMIN_EMAIL = process.env.NEXT_PUBLIC_ADMIN_EMAIL;
+const DEFAULT_ADMIN_PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD;
 
 /**
- * Autenticación de Administrador (Supabase Auth / Credencial Institucional)
+ * Autenticación de Administrador para Producción (Supabase Auth / Variables de Entorno)
+ * Principio SOLID - SRP: Autenticar de manera segura contra la API de Supabase Auth sin contraseñas por defecto.
  */
 export async function signInAdmin(emailInput: string, passwordInput: string): Promise<{ success: boolean; error?: string }> {
   const email = emailInput.trim();
   const password = passwordInput.trim();
 
-  // 1. Intentar autenticación con Supabase Auth si está configurado
+  // 1. Intentar autenticación directa con la base de datos de Supabase Auth
   if (supabase) {
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -90,24 +91,26 @@ export async function signInAdmin(emailInput: string, passwordInput: string): Pr
         return { success: true };
       }
     } catch {
-      // Continuar a validación de credencial institucional
+      // Continuar a verificación de variables de entorno si están configuradas
     }
   }
 
-  // 2. Validación de credenciales institucionales oficial/fallback
+  // 2. Validación por variables de entorno explícitas (si fueron definidas en el servidor/Vercel)
   if (
-    (email.toLowerCase() === DEFAULT_ADMIN_EMAIL.toLowerCase() || email.toLowerCase() === 'admin@rondavive.local') &&
-    (password === DEFAULT_ADMIN_PASSWORD || password === 'Admin123!')
+    DEFAULT_ADMIN_EMAIL &&
+    DEFAULT_ADMIN_PASSWORD &&
+    email.toLowerCase() === DEFAULT_ADMIN_EMAIL.toLowerCase() &&
+    password === DEFAULT_ADMIN_PASSWORD
   ) {
     if (typeof window !== 'undefined') {
-      localStorage.setItem('rv_admin_session', JSON.stringify({ email, token: 'local-auth-token-' + Date.now() }));
+      localStorage.setItem('rv_admin_session', JSON.stringify({ email, token: 'env-auth-token-' + Date.now() }));
     }
     return { success: true };
   }
 
   return {
     success: false,
-    error: 'Credenciales no autorizadas. Verifica tu correo institucional y contraseña.',
+    error: 'Credenciales no autorizadas. Verifica tu correo institucional y contraseña en Supabase.',
   };
 }
 
