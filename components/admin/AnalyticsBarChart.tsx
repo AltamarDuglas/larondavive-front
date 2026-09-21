@@ -6,7 +6,7 @@
 interface AnalyticsBarChartProps {
   /** Objeto clave-valor con la etiqueta y la cantidad */
   data: Record<string, number>;
-  /** Total global de referencia para el cálculo de porcentajes */
+  /** Total global de referencia que representa el 100% de la pista */
   total: number;
   /** Clase CSS para el gradiente de llenado (fill-blue, fill-red, fill-dark, fill-green, fill-purple) */
   fillClassName: string;
@@ -16,12 +16,11 @@ interface AnalyticsBarChartProps {
   labelPrefix?: string;
   /** Si es verdadero, oculta las barras con conteo cero */
   hideZeroValues?: boolean;
-  /** Si es verdadero (por defecto), la barra del elemento superior llena el 100% de la pista y las demás escalan proporcionalmente */
-  useRelativeMax?: boolean;
 }
 
 /**
- * Componente Gráfico de Barras Horizontales con Llenado Progresivo Escalado y Porcentajes.
+ * Componente Gráfico de Barras Horizontales con Llenado Progresivo Real.
+ * Cada barra se llena proporcionalmente al 100% del total de referencia (safeTotal).
  * Principio SOLID - Responsabilidad Única para representación visual en barra.
  * Mobile-First: Barras flexibles, legibles y diseño responsivo sin emojis.
  */
@@ -32,7 +31,6 @@ export default function AnalyticsBarChart({
   emptyMessage = "No hay registros disponibles.",
   labelPrefix = "",
   hideZeroValues = false,
-  useRelativeMax = true,
 }: AnalyticsBarChartProps) {
   let entries = Object.entries(data);
 
@@ -46,17 +44,14 @@ export default function AnalyticsBarChart({
     return <div className="empty-state">{emptyMessage}</div>;
   }
 
+  // El total de referencia representa el 100% del ancho del track
   const safeTotal = total > 0 ? total : 1;
-  const maxCount = Math.max(...entries.map(([, c]) => c), 1);
 
   return (
     <div className="chart-bar-group">
       {entries.map(([label, count]) => {
-        const pctOfTotal = Math.round((count / safeTotal) * 100);
-        // Ancho visual de la barra: relativo al valor máximo o al total global
-        const widthPct = useRelativeMax
-          ? Math.round((count / maxCount) * 100)
-          : pctOfTotal;
+        // Porcentaje exacto respecto al 100% del total general
+        const pctOfTotal = Math.min(100, Math.round((count / safeTotal) * 100));
 
         return (
           <div className="chart-bar-item" key={label}>
@@ -66,13 +61,13 @@ export default function AnalyticsBarChart({
                 {label}
               </span>
               <strong>
-                {count} {safeTotal > 0 ? `(${pctOfTotal}%)` : ""}
+                {count} ({pctOfTotal}%)
               </strong>
             </div>
             <div className="chart-bar-track">
               <div
                 className={`chart-bar-fill ${fillClassName}`}
-                style={{ width: `${Math.max(count > 0 ? 6 : 0, widthPct)}%` }}
+                style={{ width: `${count > 0 ? Math.max(3, pctOfTotal) : 0}%` }}
               />
             </div>
           </div>

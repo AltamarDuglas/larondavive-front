@@ -1228,3 +1228,319 @@
   }
 }
 
+/* ==========================================================================
+   NUEVO COMPONENTE: LISTA DESPLEGABLE (ACORDEÓN) DE JORNADAS MOBILE-FIRST
+   Elimina el scroll horizontal en dispositivos móviles y condensa la información:
+   - Estado cerrado: Solo código, nombre, badge de registros y estado.
+   - Estado abierto: Fecha, lugar, edición de nombre, selector de estado y acciones (QR / Eliminar).
+   ========================================================================== */
+
+.jornadas-accordion-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+/* Tarjeta individual del acordeón */
+.jornada-card-accordion {
+  background: #ffffff;
+  border: 1px solid var(--border-light);
+  border-radius: 16px;
+  overflow: hidden;
+  transition: border-color 180ms ease, box-shadow 180ms ease;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+}
+
+.jornada-card-accordion:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+}
+
+.jornada-card-accordion.is-expanded {
+  border-color: var(--monteria-blue);
+  box-shadow: 0 4px 16px rgba(37, 99, 235, 0.1);
+}
+
+/* Cabecera del acordeón que actúa como trigger de apertura/cierre */
+.jornada-accordion-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 14px 18px;
+  cursor: pointer;
+  user-select: none;
+  background: #ffffff;
+  transition: background 120ms ease;
+}
+
+.jornada-accordion-header:hover {
+  background: #f8fafc;
+}
+
+/* Contenedor izquierdo de la cabecera: Código + Nombre */
+.jornada-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+
+/* Etiqueta del código de jornada (ej: RV-210926) */
+.code-tag {
+  background: #0f172a;
+  color: #ffffff;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.8rem;
+  font-weight: 800;
+  padding: 4px 8px;
+  border-radius: 6px;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Título de la jornada en la cabecera */
+.jornada-title-summary {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--text-main);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Contenedor derecho: Badge de conteo + Estado + Chevron */
+.jornada-header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+/* Badge con el total de personas registradas en la jornada */
+.jornada-count-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  transition: all 140ms ease;
+}
+
+/* Estilo cuando la jornada NO tiene personas registradas (0 registros, apta para eliminar) */
+.jornada-count-badge.is-zero {
+  background: #f1f5f9;
+  color: #64748b;
+  border: 1px solid #e2e8f0;
+}
+
+/* Estilo cuando la jornada SÍ tiene asistentes registrados */
+.jornada-count-badge.is-positive {
+  background: rgba(22, 163, 74, 0.1);
+  color: #15803d;
+  border: 1px solid rgba(22, 163, 74, 0.25);
+}
+
+/* Badges de estado general */
+.status-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: capitalize;
+  letter-spacing: 0.3px;
+}
+
+.status-badge.status-activa {
+  background: rgba(22, 163, 74, 0.12);
+  color: #15803d;
+  border: 1px solid rgba(22, 163, 74, 0.25);
+}
+
+.status-badge.status-programada {
+  background: rgba(234, 179, 8, 0.12);
+  color: #a16207;
+  border: 1px solid rgba(234, 179, 8, 0.25);
+}
+
+.status-badge.status-finalizada {
+  background: rgba(100, 116, 139, 0.12);
+  color: #475569;
+  border: 1px solid rgba(100, 116, 139, 0.25);
+}
+
+/* Ícono Chevron que gira al abrir el acordeón */
+.accordion-chevron {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+  transition: transform 200ms ease, color 200ms ease;
+}
+
+.accordion-chevron.rotate-180 {
+  transform: rotate(180deg);
+  color: var(--monteria-blue);
+}
+
+/* Cuerpo desplegable del acordeón con detalles y opciones completas */
+.jornada-accordion-body {
+  padding: 16px 18px 18px;
+  border-top: 1px solid #f1f5f9;
+  background: #fafbfc;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Cuadrícula de detalles de la jornada */
+.jornada-details-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+.jornada-detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.jornada-detail-full {
+  grid-column: 1 / -1;
+}
+
+.detail-label {
+  font-size: 0.74rem;
+  font-weight: 800;
+  color: var(--text-subtle);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Fila para edición del título inline */
+.jornada-edit-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.jornada-title-view {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1rem;
+  color: var(--text-main);
+  flex-wrap: wrap;
+}
+
+.clean-link-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: transparent;
+  border: none;
+  color: var(--monteria-blue);
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 6px;
+  transition: background 120ms ease;
+}
+
+.clean-link-btn:hover {
+  background: rgba(37, 99, 235, 0.08);
+}
+
+/* Barra inferior de acciones (Imprimir QR / Eliminar) */
+.jornada-actions-bar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding-top: 12px;
+  border-top: 1px dashed #e2e8f0;
+}
+
+/* Botones de acción peligrosa (Eliminación) */
+.clean-btn--danger {
+  background: #dc2626;
+  color: #ffffff;
+  border: none;
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 8px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 140ms ease;
+}
+
+.clean-btn--danger:hover {
+  background: #b91c1c;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25);
+}
+
+.clean-btn--danger-outline {
+  background: transparent;
+  color: #dc2626;
+  border: 1px solid #fca5a5;
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 8px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 140ms ease;
+}
+
+.clean-btn--danger-outline:hover {
+  background: #fef2f2;
+  border-color: #dc2626;
+  transform: translateY(-1px);
+}
+
+/* Adaptación responsive para pantallas táctiles y móviles estrechos */
+@media (max-width: 640px) {
+  .jornada-accordion-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .jornada-header-left {
+    width: 100%;
+  }
+
+  .jornada-header-right {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .jornada-actions-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .jornada-actions-bar .clean-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+

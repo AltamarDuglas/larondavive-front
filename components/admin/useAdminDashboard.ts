@@ -2,6 +2,7 @@
 
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import {
+  deleteJornada,
   exportToExcel,
   exportToPDF,
   getAdminMetrics,
@@ -189,6 +190,12 @@ export function useAdminDashboard() {
     loadRealSupabaseData(selectedJornadaFilter);
   };
 
+  const handleDeleteJornada = async (code: string) => {
+    setJornadas((prev) => prev.filter((j) => j.code !== code));
+    await deleteJornada(code);
+    loadRealSupabaseData(selectedJornadaFilter);
+  };
+
   const filteredAsistentes = useMemo(
     () =>
       asistentes.filter((item) => {
@@ -229,6 +236,7 @@ export function useAdminDashboard() {
     filteredAsistentes,
     fullAnalytics,
     genderBreakdown: fullAnalytics.genderBreakdown,
+    handleDeleteJornada,
     handleExportCSV,
     handleExportExcel,
     handleExportPDF,
@@ -242,6 +250,7 @@ export function useAdminDashboard() {
     isJornadaModalOpen,
     isLoading,
     isLoggingIn,
+    jornadaAttendanceCounts: fullAnalytics.jornadaAttendanceCounts,
     jornadas,
     loginError,
     metricsSummary: fullAnalytics.metricsSummary,

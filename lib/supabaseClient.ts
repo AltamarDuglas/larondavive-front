@@ -364,6 +364,44 @@ export async function updateJornadaTitle(
 }
 
 /**
+ * Elimina una Jornada Institucional en Supabase y en el almacenamiento local.
+ *
+ * @param code Código único de la jornada a eliminar
+ * @returns Promesa con estado booleano de éxito
+ */
+export async function deleteJornada(code: string): Promise<boolean> {
+  if (supabase) {
+    try {
+      const { error } = await supabase
+        .from('jornadas')
+        .delete()
+        .eq('code', code);
+
+      if (!error) {
+        return true;
+      }
+    } catch {
+      // Fallback
+    }
+  }
+
+  // Fallback local
+  if (typeof window !== 'undefined') {
+    const local = localStorage.getItem('rv_custom_jornadas');
+    if (local) {
+      try {
+        const list: JornadaRecord[] = JSON.parse(local);
+        const updated = list.filter((j) => j.code !== code);
+        localStorage.setItem('rv_custom_jornadas', JSON.stringify(updated));
+      } catch {
+        // Ignorar
+      }
+    }
+  }
+  return true;
+}
+
+/**
  * Sincronizar un registro de asistencia en Supabase (y respaldo local).
  * Detecta si el ciudadano ya contaba con un registro de asistencia previo para el mismo código de jornada.
  *

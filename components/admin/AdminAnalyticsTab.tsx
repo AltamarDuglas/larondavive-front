@@ -282,7 +282,6 @@ export default function AdminAnalyticsTab({
             data={ageBreakdown}
             total={totalCiudadanos}
             fillClassName="fill-blue"
-            useRelativeMax={true}
           />
         </article>
       </div>
@@ -311,8 +310,7 @@ export default function AdminAnalyticsTab({
                 data={Object.fromEntries(topOriginLocations.map((item) => [item.location, item.count]))}
                 total={totalNacidosFuera}
                 fillClassName="fill-dark"
-                useRelativeMax={true}
-              />
+                  />
             </div>
           )}
         </article>
@@ -339,8 +337,7 @@ export default function AdminAnalyticsTab({
               total={metricsSummary.totalNiñosAcompañantes || 1}
               fillClassName="fill-purple"
               emptyMessage="No hay acompañamiento de niños registrado."
-              useRelativeMax={true}
-            />
+              />
           </div>
         </article>
       </div>
@@ -359,7 +356,6 @@ export default function AdminAnalyticsTab({
             data={comunaBreakdown}
             total={totalCiudadanos}
             fillClassName="fill-blue"
-            useRelativeMax={true}
           />
         </article>
 
@@ -385,8 +381,7 @@ export default function AdminAnalyticsTab({
               data={Object.fromEntries(topBarrios.map((b) => [b.name, b.count]))}
               total={totalCiudadanos}
               fillClassName="fill-blue"
-              useRelativeMax={true}
-            />
+              />
           </div>
         </article>
       </div>
@@ -422,7 +417,6 @@ export default function AdminAnalyticsTab({
             total={totalCiudadanos}
             fillClassName="fill-red"
             emptyMessage="No hay registros poblacionales."
-            useRelativeMax={true}
           />
 
           {otherSocialGroupSpecs.length > 0 && (
@@ -455,7 +449,6 @@ export default function AdminAnalyticsTab({
           fillClassName="fill-green"
           emptyMessage="No hay registros de asistencia por jornada."
           labelPrefix="Jornada "
-          useRelativeMax={true}
         />
       </div>
     </section>

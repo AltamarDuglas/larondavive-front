@@ -62,10 +62,12 @@ export default function AdminPage() {
             {admin.activeTab === "jornadas" && (
               <AdminJornadasTab
                 jornadas={admin.jornadas}
+                jornadaAttendanceCounts={admin.jornadaAttendanceCounts}
                 onCreateJornada={() => admin.setIsJornadaModalOpen(true)}
                 onSelectQrJornada={admin.setSelectedQrJornada}
                 onUpdateStatus={admin.handleUpdateJornadaStatus}
                 onUpdateTitle={admin.handleUpdateJornadaTitle}
+                onDeleteJornada={admin.handleDeleteJornada}
               />
             )}
 
