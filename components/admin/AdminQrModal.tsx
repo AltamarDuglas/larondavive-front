@@ -331,53 +331,64 @@ export default function AdminQrModal({ jornada, isOpen, onClose }: AdminQrModalP
     window.print();
   };
 
+  const [copied, setCopied] = useState<boolean>(false);
+
+  const handleCopyUrl = async () => {
+    if (!registerUrl) return;
+    try {
+      await navigator.clipboard.writeText(registerUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    } catch {
+      // Fallback en caso de bloqueo de permisos de portapapeles
+    }
+  };
+
   return (
     <div className="admin-modal-backdrop" onClick={onClose}>
       <div
-        className="admin-modal-card qr-poster-modal qr-poster-modal--landscape"
+        className="admin-modal-card qr-poster-modal"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
-        style={{ maxWidth: '980px', width: '95%' }}
       >
         <div className="admin-modal-header no-print">
           <div>
             <span className="eyebrow">Alcaldía de Montería</span>
-            <h3>Pendón Oficial de Registro QR (Vista Horizontal)</h3>
+            <h3>Pendón Oficial de Registro QR</h3>
           </div>
-          <button type="button" className="admin-modal-close" onClick={onClose}>
+          <button type="button" className="admin-modal-close" onClick={onClose} aria-label="Cerrar ventana">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <path d="M18 6L6 18M6 6l12 12" />
             </svg>
           </button>
         </div>
 
-        {/* CONTENIDO DEL PENDÓN DE IMPRESIÓN OFICIAL / VISTA PREVIA HORIZONTAL */}
-        <div className="qr-poster-frame qr-poster-frame--landscape">
+        {/* CONTENIDO DEL PENDÓN DE IMPRESIÓN OFICIAL / VISTA PREVIA ADAPTATIVA */}
+        <div className="qr-poster-frame--landscape">
           <div className="qr-poster-head-brand">
-            <div className="poster-logo-col">
-              <div className="poster-logo-box-white">
-                <NextImage
-                  src={alcaldiaBanner}
-                  alt="Alcaldía de Montería"
-                  width={150}
-                  height={52}
-                  style={{ objectFit: 'contain' }}
-                />
-              </div>
+            <div className="poster-logo-box-white">
+              <NextImage
+                src={alcaldiaBanner}
+                alt="Alcaldía de Montería"
+                width={130}
+                height={44}
+                style={{ objectFit: 'contain', width: 'auto', height: 'auto', maxHeight: '42px' }}
+              />
             </div>
+
             <div className="poster-title-col">
-              <span className="poster-institution">ALCALDÍA DE MONTERÍA</span>
-              <span className="poster-department">SECRETARÍA DE CULTURA</span>
-              <h2 className="poster-title">RONDA VIVE</h2>
+              <span className="poster-institution">ALCALDÍA DE MONTERÍA • SECRETARÍA DE CULTURA</span>
+              <h2 className="poster-brand-title">LA RONDA VIVE</h2>
               <p className="poster-subtitle">Registro Oficial de Asistencia Ciudadana</p>
             </div>
-            <div className="poster-logo-col" style={{ textAlign: 'right' }}>
+
+            <div className="poster-logo-box-right">
               <NextImage
                 src={rondaViveLogo}
                 alt="La Ronda Vive"
-                width={140}
-                height={60}
-                style={{ objectFit: 'contain' }}
+                width={110}
+                height={46}
+                style={{ objectFit: 'contain', width: 'auto', height: 'auto', maxHeight: '44px' }}
               />
             </div>
           </div>
@@ -385,42 +396,82 @@ export default function AdminQrModal({ jornada, isOpen, onClose }: AdminQrModalP
           <div className="qr-poster-landscape-body">
             {/* Columna Izquierda: Información de la jornada e instrucciones */}
             <div className="poster-info-col">
-              <div className="poster-photo-wrapper">
-                <NextImage
-                  src={laRondaViveScaled}
-                  alt="La Ronda Vive"
-                  width={340}
-                  height={140}
-                  style={{ objectFit: 'cover', borderRadius: '12px', width: '100%', height: '140px' }}
-                />
+              <div className="poster-jornada-badge">
+                <span className="poster-jornada-badge-dot" />
+                <span>Jornada Institucional</span>
               </div>
 
               <h3 className="poster-jornada-title">{jornada.title}</h3>
-              <p className="poster-location">Ubicación: {jornada.location} | Fecha: {jornada.event_date}</p>
 
-              <div className="poster-code-badge">
-                CÓDIGO ÚNICO DE JORNADA: {jornada.code}
+              <div className="poster-meta-card">
+                <div className="poster-meta-item">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="2.2">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                    <circle cx="12" cy="10" r="3" />
+                  </svg>
+                  <span><strong>Ubicación:</strong> {jornada.location}</span>
+                </div>
+                <div className="poster-meta-item">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.2">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                    <line x1="16" y1="2" x2="16" y2="6" />
+                    <line x1="8" y1="2" x2="8" y2="6" />
+                    <line x1="3" y1="10" x2="21" y2="10" />
+                  </svg>
+                  <span><strong>Fecha:</strong> {jornada.event_date}</span>
+                </div>
               </div>
 
-              <p className="poster-instructions">
-                <strong>Escanea con la cámara de tu celular</strong> para confirmar tu presencia en la jornada de hoy.
-              </p>
+              <div className="poster-code-badge">
+                CÓDIGO ÚNICO: {jornada.code}
+              </div>
+
+              <div className="poster-instructions-box">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="2.2">
+                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                  <circle cx="12" cy="13" r="4" />
+                </svg>
+                <p>Apunta la cámara de tu celular al código QR para confirmar tu presencia de forma inmediata.</p>
+              </div>
 
               <div className="poster-link-box">
-                <span>{registerUrl}</span>
+                <span className="poster-link-url" title={registerUrl}>{registerUrl}</span>
+                <button
+                  type="button"
+                  className={`poster-copy-btn ${copied ? 'poster-copy-btn--copied' : ''}`}
+                  onClick={handleCopyUrl}
+                  title="Copiar enlace de registro al portapapeles"
+                >
+                  {copied ? (
+                    <>
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                      ¡Copiado!
+                    </>
+                  ) : (
+                    <>
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                      </svg>
+                      Copiar
+                    </>
+                  )}
+                </button>
               </div>
             </div>
 
-            {/* Columna Derecha: QR Gigante Limpio sin solapamientos */}
+            {/* Columna Derecha: QR Limpio, Fluido y Centrado */}
             <div className="poster-qr-col">
-              <div className="qr-image-wrapper qr-image-wrapper--clean">
+              <div className="qr-image-wrapper--clean">
                 <span className="qr-top-tag">CÓDIGO QR OFICIAL</span>
                 {qrUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={qrUrl}
                     alt={`Código QR para la jornada ${jornada.code}`}
-                    className="qr-code-img qr-code-img--large"
+                    className="qr-code-img--large"
                   />
                 ) : (
                   <div className="qr-placeholder">Generando QR...</div>

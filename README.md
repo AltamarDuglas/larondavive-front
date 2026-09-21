@@ -217,6 +217,11 @@ El Panel Administrador (`/admin`) adopta un enfoque **Mobile-First 100% responsi
    - **`AdminJornadasTab.tsx`**: Acordeón interactivo mobile-first con conteo de registros y gestión de jornadas.
    - **`AdminJornadaModal.tsx`**: Creador táctil de jornadas con generación automática de códigos sugeridos.
 
+7. **Modal Adaptativo del Pendón QR (`AdminQrModal.tsx`):**
+   - Presentación mobile-first completamente responsiva: en dispositivos móviles se apila limpiamente de forma vertical eliminando cualquier desbordamiento o scroll horizontal.
+   - En computadores despliega una vista institucional en dos columnas con cabecera de logos oficiales (`Alcaldía de Montería` y `La Ronda Vive`), código único resaltado, instrucciones de escaneo y botón para copiar el enlace directo.
+   - Mantiene intacta la descarga e impresión en alta definición del PDF en formato horizontal (`Landscape A4`).
+
 ---
 
 ## 📋 Verificación de Código
