@@ -49,13 +49,13 @@ export default function AdminPage() {
 
             {admin.activeTab === "analytics" && (
               <AdminAnalyticsTab
-                ageBreakdown={admin.ageBreakdown}
-                asistentes={admin.asistentes}
-                genderBreakdown={admin.genderBreakdown}
+                fullAnalytics={admin.fullAnalytics}
+                jornadas={admin.jornadas}
+                selectedJornadaFilter={admin.selectedJornadaFilter}
+                onJornadaFilterChange={admin.handleJornadaFilterChange}
                 onExportPDF={admin.handleExportPDF}
-                socialGroupCounts={admin.socialGroupCounts}
-                topBarrios={admin.topBarrios}
-                zoneBreakdown={admin.zoneBreakdown}
+                onExportExcel={admin.handleExportExcel}
+                onExportCSV={admin.handleExportCSV}
               />
             )}
 

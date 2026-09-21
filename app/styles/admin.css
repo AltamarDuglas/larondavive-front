@@ -847,16 +847,12 @@
   transition: width 400ms ease;
 }
 
-.fill-blue {
-  background: linear-gradient(90deg, #2563eb, #3b82f6);
+.fill-green {
+  background: linear-gradient(90deg, #16a34a, #22c55e);
 }
 
-.fill-red {
-  background: linear-gradient(90deg, #dc2626, #ef4444);
-}
-
-.fill-dark {
-  background: linear-gradient(90deg, #0f172a, #334155);
+.fill-purple {
+  background: linear-gradient(90deg, #9333ea, #a855f7);
 }
 
 .analytics-subblock h4 {
@@ -867,3 +863,356 @@
   letter-spacing: 0.5px;
   margin: 0 0 8px;
 }
+
+/* ==========================================================================
+   NUEVOS ESTILOS MOBILE-FIRST DE ANALÍTICA Y GRÁFICOS SVG
+   ========================================================================== */
+
+/* Badges y Encabezados */
+.admin-badge-tag {
+  display: inline-block;
+  background: rgba(37, 99, 235, 0.1);
+  color: var(--monteria-blue-dark);
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 4px 12px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+
+.card-title-group {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.card-badge {
+  font-size: 0.72rem;
+  font-weight: 800;
+  background: #f1f5f9;
+  color: #475569;
+  padding: 3px 10px;
+  border-radius: 999px;
+  text-transform: uppercase;
+}
+
+/* Selector de Filtro de Jornada */
+.jornada-filter-selector {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #f8fafc;
+  padding: 6px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border-light);
+  width: 100%;
+  max-width: 420px;
+}
+
+.filter-select-label {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: var(--text-subtle);
+  white-space: nowrap;
+}
+
+.clean-select {
+  flex: 1;
+  background: #ffffff;
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-main);
+  outline: none;
+  cursor: pointer;
+  min-height: 40px;
+}
+
+.clean-select:focus {
+  border-color: var(--monteria-blue);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.export-btn-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* REJILLA RESPONSIVA DE TARJETAS KPI (ANALYTICS STAT CARDS) */
+.admin-stat-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.analytics-stat-card {
+  background: var(--surface-white);
+  border: 1px solid var(--border-light);
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+.analytics-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.stat-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.stat-card-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+}
+
+.variant-blue .stat-card-icon {
+  background: rgba(37, 99, 235, 0.1);
+}
+.variant-green .stat-card-icon {
+  background: rgba(22, 163, 74, 0.1);
+}
+.variant-purple .stat-card-icon {
+  background: rgba(147, 51, 234, 0.1);
+}
+.variant-red .stat-card-icon {
+  background: rgba(220, 38, 38, 0.1);
+}
+.variant-dark .stat-card-icon {
+  background: rgba(15, 23, 42, 0.08);
+}
+
+.stat-card-badge {
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: #f1f5f9;
+  color: #334155;
+}
+
+.stat-card-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-card-title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-subtle);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.stat-card-value {
+  font-size: 1.8rem;
+  font-weight: 900;
+  color: var(--text-main);
+  line-height: 1.15;
+  margin: 2px 0 4px;
+}
+
+.stat-card-subtitle {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+/* ESTILOS DEL COMPONENTE DE GRÁFICO DE PASTEL / DONA (ANALYTICS PIE CHART) */
+.analytics-pie-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  padding-top: 10px;
+}
+
+.analytics-pie-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 220px;
+  margin: 0 auto;
+}
+
+.analytics-pie-svg {
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.analytics-pie-center-label {
+  font-size: 11px;
+  font-weight: 800;
+  fill: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.analytics-pie-center-val {
+  font-size: 14px;
+  font-weight: 900;
+  fill: #0f172a;
+}
+
+.analytics-pie-legend {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 10px;
+  width: 100%;
+
+}
+
+.analytics-pie-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: #f8fafc;
+  border: 1px solid var(--border-light);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 140ms ease;
+}
+
+.analytics-pie-legend-item:hover,
+.analytics-pie-legend-item.is-active {
+  background: #ffffff;
+  border-color: var(--monteria-blue);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transform: translateY(-1px);
+}
+
+.analytics-pie-legend-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.analytics-pie-legend-text {
+  flex: 1;
+  font-weight: 700;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.analytics-pie-legend-count {
+  font-weight: 800;
+  color: var(--text-subtle);
+  font-size: 0.78rem;
+}
+
+.analytics-pie-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  color: var(--text-muted);
+  text-align: center;
+  gap: 10px;
+}
+
+.analytics-pie-empty p {
+  margin: 0;
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.other-social-specs-box {
+  background: #f8fafc;
+  border: 1px solid var(--border-light);
+  border-radius: 14px;
+  padding: 14px;
+}
+
+.other-social-specs-box h4 {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: var(--text-subtle);
+  margin: 0 0 8px;
+}
+
+.specs-tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.spec-tag-item {
+  background: #ffffff;
+  border: 1px solid var(--border-light);
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+/* AJUSTES RESPONSIVOS MOBILE-FIRST (SMARTPHONES Y TABLETS) */
+@media (max-width: 640px) {
+  .admin-header-actions {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .jornada-filter-selector {
+    max-width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .export-btn-group {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .export-btn-group .clean-btn {
+    padding: 8px 4px;
+    font-size: 0.78rem;
+    justify-content: center;
+  }
+
+  .admin-stat-cards-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .stat-card-value {
+    font-size: 1.4rem;
+  }
+
+  .analytics-pie-legend {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 420px) {
+  .admin-stat-cards-grid {
+    grid-template-columns: 1fr;
+  }
+}
+

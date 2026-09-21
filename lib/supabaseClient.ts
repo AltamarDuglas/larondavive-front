@@ -500,30 +500,47 @@ export async function getAsistencias(): Promise<AsistenciaRecord[]> {
 }
 
 /**
- * Obtener métricas e indicadores 100% reales desde Supabase PostgreSQL (con análisis demográfico enriquecido).
+ * Obtener métricas e indicadores 100% reales desde Supabase PostgreSQL o estado local.
+ * Soporta filtrado dinámico opcional por código de jornada (selectedJornadaCode).
+ * Principio SOLID - Single Responsibility: Procesamiento analítico desacoplado.
  */
-export async function getAdminMetrics() {
+export async function getAdminMetrics(selectedJornadaCode: string = 'TODAS') {
   const jornadas = await getJornadas();
-  const asistentes = await getAsistentes();
-  const asistencias = await getAsistencias();
+  const allAsistentes = await getAsistentes();
+  const allAsistencias = await getAsistencias();
+
+  // 1. Filtrar asistencias y asistentes si hay una jornada seleccionada
+  let asistencias = allAsistencias;
+  let asistentes = allAsistentes;
+
+  if (selectedJornadaCode !== 'TODAS') {
+    asistencias = allAsistencias.filter((row) => row.jornada_code === selectedJornadaCode);
+    const asistenteIdsInJornada = new Set(
+      asistencias.map((row) => row.asistente_id).filter(Boolean)
+    );
+    if (asistenteIdsInJornada.size > 0) {
+      asistentes = allAsistentes.filter((a) => a.id && asistenteIdsInJornada.has(a.id));
+    }
+  }
 
   const totalCiudadanos = asistentes.length;
   const asistenciasAcumuladas = asistencias.length || totalCiudadanos;
   const confirmacionesQr = '100%';
 
-  // Cálculo en vivo de la Tasa de Retorno Recurrente
+  // 2. Cálculo en vivo de la Tasa de Retorno Recurrente
   const attendeeCounts: Record<string, number> = {};
-  asistencias.forEach((row) => {
+  allAsistencias.forEach((row) => {
     if (row.asistente_id) {
       attendeeCounts[row.asistente_id] = (attendeeCounts[row.asistente_id] || 0) + 1;
     }
   });
 
   const recurringCount = Object.values(attendeeCounts).filter((cnt) => cnt > 1).length;
-  const tasaRetornoNumber = totalCiudadanos > 0 ? (recurringCount / totalCiudadanos) * 100 : 0;
+  const totalGlobalAsistentes = allAsistentes.length || 1;
+  const tasaRetornoNumber = (recurringCount / totalGlobalAsistentes) * 100;
   const tasaRetorno = `${tasaRetornoNumber.toFixed(1)}%`;
 
-  // Desglose demográfico real: Rangos de Edad
+  // 3. Rangos de Edad
   const ageBreakdown: Record<string, number> = {
     '18 a 28 años': 0,
     '29 a 40 años': 0,
@@ -532,7 +549,7 @@ export async function getAdminMetrics() {
     '70 años o más': 0,
   };
 
-  // Desglose demográfico real: Género
+  // 4. Identidad de Género
   const genderBreakdown: Record<string, number> = {
     Femenino: 0,
     Masculino: 0,
@@ -540,41 +557,189 @@ export async function getAdminMetrics() {
     'Prefiero no responder': 0,
   };
 
-  // Desglose por Zona (Urbana vs Rural)
+  // 5. Zona Territorial (Urbana vs Rural)
   const zoneBreakdown: Record<string, number> = {
     Urbana: 0,
     Rural: 0,
   };
 
-  // Ranking de Barrios Top
+  // 6. Origen: Nacido en Montería (Sí vs No) y Lugares de nacimiento
+  const bornInMonteriaBreakdown: Record<string, number> = {
+    'Nacidos en Montería': 0,
+    'Nacidos fuera de Montería': 0,
+  };
+  const birthLocationCounts: Record<string, number> = {};
+
+  // 7. Acompañamiento Familiar de Niños/as
+  const attendedWithChildrenBreakdown: Record<string, number> = {
+    'Con Niños/as': 0,
+    'Sin Niños/as': 0,
+  };
+  let totalNiñosAcompañantes = 0;
+  const childrenCountDistribution: Record<string, number> = {
+    '1 niño': 0,
+    '2 niños': 0,
+    '3 niños': 0,
+    '4 o más niños': 0,
+  };
+
+  // 8. Comunas de Montería
+  const comunaBreakdown: Record<string, number> = {
+    'Comuna 1': 0,
+    'Comuna 2': 0,
+    'Comuna 3': 0,
+    'Comuna 4': 0,
+    'Comuna 5': 0,
+    'Comuna 6': 0,
+    'Comuna 7': 0,
+    'Comuna 8': 0,
+    'Comuna 9': 0,
+    'No aplica': 0,
+  };
+
+  // 9. Ranking de Barrios Top
   const barrioCounts: Record<string, number> = {};
 
-  // Grupos de Especial Protección / Sociales
-  const socialGroupCounts: Record<string, number> = {};
+  // 10. Grupos Poblacionales / Étnicos
+  const populationGroupBreakdown: Record<string, number> = {
+    'Comunidades indígenas': 0,
+    NARP: 0,
+    'Pueblos gitanos (ROM)': 0,
+    Ninguno: 0,
+  };
 
+  // 11. Grupos Sociales y Protección Especial
+  const socialGroupCounts: Record<string, number> = {};
+  const otherSocialGroupSpecs: string[] = [];
+
+  // 12. Aspectos Legales
+  const habeasDataBreakdown: Record<string, number> = {
+    'Aceptado (Sí)': 0,
+    'Pendiente (No)': 0,
+  };
+  const termsAcceptanceBreakdown: Record<string, number> = {
+    'Aceptó Términos (SI)': 0,
+    'Rechazó Términos (NO)': 0,
+  };
+
+  // Procesamiento del 100% de atributos de la lista de asistentes
   asistentes.forEach((a) => {
+    // Edad
     if (a.age_range) {
       ageBreakdown[a.age_range] = (ageBreakdown[a.age_range] || 0) + 1;
     }
+
+    // Género
     if (a.gender_identity) {
-      genderBreakdown[a.gender_identity] = (genderBreakdown[a.gender_identity] || 0) + 1;
+      if (a.gender_identity.includes('OSIGD')) {
+        genderBreakdown['OSIGD'] = (genderBreakdown['OSIGD'] || 0) + 1;
+      } else {
+        genderBreakdown[a.gender_identity] = (genderBreakdown[a.gender_identity] || 0) + 1;
+      }
     }
+
+    // Zona
     if (a.zone) {
       zoneBreakdown[a.zone] = (zoneBreakdown[a.zone] || 0) + 1;
     }
+
+    // Origen Montería
+    if (a.born_in_monteria) {
+      bornInMonteriaBreakdown['Nacidos en Montería'] += 1;
+    } else {
+      bornInMonteriaBreakdown['Nacidos fuera de Montería'] += 1;
+      if (a.birth_location && a.birth_location !== 'Montería (Córdoba)') {
+        birthLocationCounts[a.birth_location] = (birthLocationCounts[a.birth_location] || 0) + 1;
+      }
+    }
+
+    // Niños
+    if (a.attended_with_children) {
+      attendedWithChildrenBreakdown['Con Niños/as'] += 1;
+      const count = Number(a.children_count) || 1;
+      totalNiñosAcompañantes += count;
+      if (count === 1) childrenCountDistribution['1 niño'] += 1;
+      else if (count === 2) childrenCountDistribution['2 niños'] += 1;
+      else if (count === 3) childrenCountDistribution['3 niños'] += 1;
+      else if (count >= 4) childrenCountDistribution['4 o más niños'] += 1;
+    } else {
+      attendedWithChildrenBreakdown['Sin Niños/as'] += 1;
+    }
+
+    // Comuna
+    if (a.comuna) {
+      comunaBreakdown[a.comuna] = (comunaBreakdown[a.comuna] || 0) + 1;
+    }
+
+    // Barrio
     if (a.barrio) {
       barrioCounts[a.barrio] = (barrioCounts[a.barrio] || 0) + 1;
     }
+
+    // Grupo Poblacional
+    if (a.population_group) {
+      populationGroupBreakdown[a.population_group] =
+        (populationGroupBreakdown[a.population_group] || 0) + 1;
+    }
+
+    // Grupo Social
     if (a.social_group) {
       socialGroupCounts[a.social_group] = (socialGroupCounts[a.social_group] || 0) + 1;
+      if (a.social_group === 'Otros' && a.other_social_group_spec) {
+        otherSocialGroupSpecs.push(a.other_social_group_spec);
+      }
+    }
+
+    // Habeas Data & Términos
+    if (a.accepted_habeas_data) {
+      habeasDataBreakdown['Aceptado (Sí)'] += 1;
+    } else {
+      habeasDataBreakdown['Pendiente (No)'] += 1;
+    }
+
+    if (a.accepted_terms === 'SI') {
+      termsAcceptanceBreakdown['Aceptó Términos (SI)'] += 1;
+    } else {
+      termsAcceptanceBreakdown['Rechazó Términos (NO)'] += 1;
     }
   });
 
-  // Ordenar barrios Top 10
+  // Top Barrios (primeros 10)
   const topBarrios = Object.entries(barrioCounts)
     .map(([name, count]) => ({ name, count }))
     .sort((a, b) => b.count - a.count)
     .slice(0, 10);
+
+  // Top Lugares de Nacimiento (primeros 6)
+  const topOriginLocations = Object.entries(birthLocationCounts)
+    .map(([location, count]) => ({ location, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 6);
+
+  // Conteo de asistencias por código de jornada
+  const jornadaAttendanceCounts: Record<string, number> = {};
+  allAsistencias.forEach((ast) => {
+    if (ast.jornada_code) {
+      jornadaAttendanceCounts[ast.jornada_code] =
+        (jornadaAttendanceCounts[ast.jornada_code] || 0) + 1;
+    }
+  });
+
+  // Porcentajes para métricas KPI
+  const porcentajeNacidosMonteria =
+    totalCiudadanos > 0
+      ? `${((bornInMonteriaBreakdown['Nacidos en Montería'] / totalCiudadanos) * 100).toFixed(1)}%`
+      : '0%';
+
+  const porcentajeHabeasData =
+    totalCiudadanos > 0
+      ? `${((habeasDataBreakdown['Aceptado (Sí)'] / totalCiudadanos) * 100).toFixed(1)}%`
+      : '100%';
+
+  const porcentajeTerminos =
+    totalCiudadanos > 0
+      ? `${((termsAcceptanceBreakdown['Aceptó Términos (SI)'] / totalCiudadanos) * 100).toFixed(1)}%`
+      : '100%';
 
   return {
     totalCiudadanos,
@@ -582,11 +747,25 @@ export async function getAdminMetrics() {
     confirmacionesQr,
     tasaRetorno,
     totalJornadas: jornadas.length,
+    totalNiñosAcompañantes,
+    porcentajeNacidosMonteria,
+    porcentajeHabeasData,
+    porcentajeTerminos,
     ageBreakdown,
     genderBreakdown,
     zoneBreakdown,
+    bornInMonteriaBreakdown,
+    topOriginLocations,
+    attendedWithChildrenBreakdown,
+    childrenCountDistribution,
+    comunaBreakdown,
     topBarrios,
+    populationGroupBreakdown,
     socialGroupCounts,
+    otherSocialGroupSpecs,
+    habeasDataBreakdown,
+    termsAcceptanceBreakdown,
+    jornadaAttendanceCounts,
     jornadas,
     asistentes,
     asistencias,

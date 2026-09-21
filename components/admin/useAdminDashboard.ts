@@ -13,6 +13,7 @@ import {
 import {
   AdminTab,
   AsistenteRecord,
+  FullAnalyticsData,
   JornadaRecord,
   MetricsSummary,
   TopBarrio,
@@ -24,8 +25,35 @@ const INITIAL_METRICS_SUMMARY: MetricsSummary = {
   asistenciasAcumuladas: 0,
   confirmacionesQr: "100%",
   tasaRetorno: "0%",
+  totalNiñosAcompañantes: 0,
+  porcentajeNacidosMonteria: "0%",
+  porcentajeHabeasData: "100%",
+  porcentajeTerminos: "100%",
 };
 
+const INITIAL_FULL_ANALYTICS: FullAnalyticsData = {
+  metricsSummary: INITIAL_METRICS_SUMMARY,
+  ageBreakdown: {},
+  genderBreakdown: {},
+  zoneBreakdown: {},
+  bornInMonteriaBreakdown: {},
+  topOriginLocations: [],
+  attendedWithChildrenBreakdown: {},
+  childrenCountDistribution: {},
+  comunaBreakdown: {},
+  topBarrios: [],
+  populationGroupBreakdown: {},
+  socialGroupCounts: {},
+  otherSocialGroupSpecs: [],
+  habeasDataBreakdown: {},
+  termsAcceptanceBreakdown: {},
+  jornadaAttendanceCounts: {},
+};
+
+/**
+ * Hook personalizado para la gestión del estado global del Panel Administrador.
+ * Principio SOLID - SRP: Separación estricta entre lógica de estado y componentes de UI.
+ */
 export function useAdminDashboard() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [emailInput, setEmailInput] = useState<string>("");
@@ -36,20 +64,16 @@ export function useAdminDashboard() {
   const [activeTab, setActiveTab] = useState<AdminTab>("analytics");
   const [jornadas, setJornadas] = useState<JornadaRecord[]>([]);
   const [asistentes, setAsistentes] = useState<AsistenteRecord[]>([]);
-  const [ageBreakdown, setAgeBreakdown] = useState<Record<string, number>>({});
-  const [genderBreakdown, setGenderBreakdown] = useState<
-    Record<string, number>
-  >({});
-  const [zoneBreakdown, setZoneBreakdown] = useState<Record<string, number>>(
-    {},
+
+  // Filtro activo por código de jornada para analítica
+  const [selectedJornadaFilter, setSelectedJornadaFilter] =
+    useState<string>("TODAS");
+
+  // Estado unificado con todas las métricas analíticas del 100% de los datos
+  const [fullAnalytics, setFullAnalytics] = useState<FullAnalyticsData>(
+    INITIAL_FULL_ANALYTICS
   );
-  const [socialGroupCounts, setSocialGroupCounts] = useState<
-    Record<string, number>
-  >({});
-  const [topBarrios, setTopBarrios] = useState<TopBarrio[]>([]);
-  const [metricsSummary, setMetricsSummary] = useState<MetricsSummary>(
-    INITIAL_METRICS_SUMMARY,
-  );
+
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const [isJornadaModalOpen, setIsJornadaModalOpen] = useState<boolean>(false);
@@ -60,22 +84,41 @@ export function useAdminDashboard() {
   const [selectedComunaFilter, setSelectedComunaFilter] =
     useState<string>("TODAS");
 
-  const loadRealSupabaseData = useCallback(async () => {
+  /**
+   * Carga métricas en vivo desde Supabase filtradas opcionalmente por la jornada seleccionada
+   */
+  const loadRealSupabaseData = useCallback(async (jornadaCode: string = "TODAS") => {
     setIsLoading(true);
     try {
-      const data = await getAdminMetrics();
+      const data = await getAdminMetrics(jornadaCode);
       setJornadas(data.jornadas);
       setAsistentes(data.asistentes);
-      setAgeBreakdown(data.ageBreakdown);
-      setGenderBreakdown(data.genderBreakdown);
-      setZoneBreakdown(data.zoneBreakdown);
-      setTopBarrios(data.topBarrios);
-      setSocialGroupCounts(data.socialGroupCounts);
-      setMetricsSummary({
-        totalCiudadanos: data.totalCiudadanos,
-        asistenciasAcumuladas: data.asistenciasAcumuladas,
-        confirmacionesQr: data.confirmacionesQr,
-        tasaRetorno: data.tasaRetorno,
+      setFullAnalytics({
+        metricsSummary: {
+          totalCiudadanos: data.totalCiudadanos,
+          asistenciasAcumuladas: data.asistenciasAcumuladas,
+          confirmacionesQr: data.confirmacionesQr,
+          tasaRetorno: data.tasaRetorno,
+          totalNiñosAcompañantes: data.totalNiñosAcompañantes,
+          porcentajeNacidosMonteria: data.porcentajeNacidosMonteria,
+          porcentajeHabeasData: data.porcentajeHabeasData,
+          porcentajeTerminos: data.porcentajeTerminos,
+        },
+        ageBreakdown: data.ageBreakdown,
+        genderBreakdown: data.genderBreakdown,
+        zoneBreakdown: data.zoneBreakdown,
+        bornInMonteriaBreakdown: data.bornInMonteriaBreakdown,
+        topOriginLocations: data.topOriginLocations,
+        attendedWithChildrenBreakdown: data.attendedWithChildrenBreakdown,
+        childrenCountDistribution: data.childrenCountDistribution,
+        comunaBreakdown: data.comunaBreakdown,
+        topBarrios: data.topBarrios,
+        populationGroupBreakdown: data.populationGroupBreakdown,
+        socialGroupCounts: data.socialGroupCounts,
+        otherSocialGroupSpecs: data.otherSocialGroupSpecs,
+        habeasDataBreakdown: data.habeasDataBreakdown,
+        termsAcceptanceBreakdown: data.termsAcceptanceBreakdown,
+        jornadaAttendanceCounts: data.jornadaAttendanceCounts,
       });
     } catch {
       // El panel conserva su estado previo si falla la consulta remota.
@@ -88,9 +131,14 @@ export function useAdminDashboard() {
     const hasSession = getAdminSession();
     if (hasSession) {
       setIsAuthenticated(true);
-      loadRealSupabaseData();
+      loadRealSupabaseData(selectedJornadaFilter);
     }
-  }, [loadRealSupabaseData]);
+  }, [loadRealSupabaseData, selectedJornadaFilter]);
+
+  const handleJornadaFilterChange = (newCode: string) => {
+    setSelectedJornadaFilter(newCode);
+    loadRealSupabaseData(newCode);
+  };
 
   const handleLogin = async (e: FormEvent) => {
     e.preventDefault();
@@ -106,7 +154,7 @@ export function useAdminDashboard() {
       const res = await signInAdmin(emailInput, passwordInput);
       if (res.success) {
         setIsAuthenticated(true);
-        loadRealSupabaseData();
+        loadRealSupabaseData(selectedJornadaFilter);
       } else {
         setLoginError(res.error || "Credenciales no autorizadas.");
       }
@@ -122,7 +170,7 @@ export function useAdminDashboard() {
 
   const handleJornadaCreated = (newJornada: JornadaRecord) => {
     setJornadas((prev) => [newJornada, ...prev]);
-    loadRealSupabaseData();
+    loadRealSupabaseData(selectedJornadaFilter);
   };
 
   const handleUpdateJornadaStatus = async (
@@ -133,7 +181,7 @@ export function useAdminDashboard() {
       prev.map((j) => (j.code === code ? { ...j, status: newStatus } : j))
     );
     await updateJornadaStatus(code, newStatus);
-    loadRealSupabaseData();
+    loadRealSupabaseData(selectedJornadaFilter);
   };
 
   const filteredAsistentes = useMemo(
@@ -153,11 +201,11 @@ export function useAdminDashboard() {
 
         return matchesQuery && matchesComuna;
       }),
-    [asistentes, searchQuery, selectedComunaFilter],
+    [asistentes, searchQuery, selectedComunaFilter]
   );
 
   const handleExportPDF = () => {
-    exportToPDF(asistentes, metricsSummary);
+    exportToPDF(asistentes, fullAnalytics.metricsSummary);
   };
 
   const handleExportExcel = () => {
@@ -170,15 +218,17 @@ export function useAdminDashboard() {
 
   return {
     activeTab,
-    ageBreakdown,
+    ageBreakdown: fullAnalytics.ageBreakdown,
     asistentes,
     emailInput,
     filteredAsistentes,
-    genderBreakdown,
+    fullAnalytics,
+    genderBreakdown: fullAnalytics.genderBreakdown,
     handleExportCSV,
     handleExportExcel,
     handleExportPDF,
     handleJornadaCreated,
+    handleJornadaFilterChange,
     handleUpdateJornadaStatus,
     handleLogin,
     handleLogout,
@@ -188,10 +238,11 @@ export function useAdminDashboard() {
     isLoggingIn,
     jornadas,
     loginError,
-    metricsSummary,
+    metricsSummary: fullAnalytics.metricsSummary,
     passwordInput,
     searchQuery,
     selectedComunaFilter,
+    selectedJornadaFilter,
     selectedQrJornada,
     setActiveTab,
     setEmailInput,
@@ -200,8 +251,8 @@ export function useAdminDashboard() {
     setSearchQuery,
     setSelectedComunaFilter,
     setSelectedQrJornada,
-    socialGroupCounts,
-    topBarrios,
-    zoneBreakdown,
+    socialGroupCounts: fullAnalytics.socialGroupCounts,
+    topBarrios: fullAnalytics.topBarrios,
+    zoneBreakdown: fullAnalytics.zoneBreakdown,
   };
 }
