@@ -173,21 +173,21 @@ export async function getJornadas(): Promise<JornadaRecord[]> {
   return [
     {
       code: 'RV-150926',
-      title: 'Jornada Ronda Vive Calle 27',
+      title: 'Jornada La Ronda Vive Calle 27',
       location: 'Calle 27 con Avenida Primera, Montería',
       event_date: '2026-09-15',
       status: 'activa',
     },
     {
       code: 'RV-220926',
-      title: 'Jornada Ronda Vive Arte & Río',
+      title: 'Jornada La Ronda Vive Arte & Río',
       location: 'Calle 27 con Avenida Primera, Montería',
       event_date: '2026-09-22',
       status: 'programada',
     },
     {
       code: 'RV-080926',
-      title: 'Jornada Ronda Vive Tradición',
+      title: 'Jornada La Ronda Vive Tradición',
       location: 'Calle 27 con Avenida Primera, Montería',
       event_date: '2026-09-08',
       status: 'finalizada',
@@ -238,7 +238,7 @@ export async function validateJornadaCode(codeInput: string): Promise<{
       isValid: true,
       isExpired: true,
       jornada: match,
-      error: `La jornada "${match.title}" (${match.code}) se encuentra finalizada en el panel de administración. Para recibir registros, cámbiala a 'activa' en el panel admin.`,
+      error: `Esta jornada ya ha finalizado y no se encuentra disponible para nuevos registros. ¡Agradecemos tu interés y participación en La Ronda Vive!`,
     };
   }
 
@@ -876,9 +876,9 @@ export function exportToExcel(asistentes: AsistenteRecord[], filename?: string):
   worksheet['!cols'] = columnWidths;
 
   const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, 'Asistentes Ronda Vive');
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Asistentes La Ronda Vive');
 
-  const defaultName = `Reporte_Oficial_Asistentes_RondaVive_Monteria_${new Date().toISOString().split('T')[0]}.xlsx`;
+  const defaultName = `Reporte_Oficial_Asistentes_LaRondaVive_Monteria_${new Date().toISOString().split('T')[0]}.xlsx`;
   XLSX.writeFile(workbook, filename || defaultName);
 }
 
@@ -926,7 +926,7 @@ export function exportToPDF(
   doc.setFontSize(8.5);
   doc.setFont('helvetica', 'normal');
   doc.text(
-    `Plataforma Ronda Vive • Calle 27 con Av. Primera • Emisión: ${new Date().toLocaleDateString('es-CO')}`,
+    `Plataforma La Ronda Vive • Calle 27 con Av. Primera • Emisión: ${new Date().toLocaleDateString('es-CO')}`,
     14,
     33
   );
@@ -1177,13 +1177,13 @@ export function exportToPDF(
     doc.setFontSize(7.5);
     doc.setTextColor(148, 163, 184);
     doc.text(
-      `Alcaldía de Montería • Secretaría de Cultura • Informe de Analítica Ronda Vive • Página ${i} de ${pageCount}`,
+      `Alcaldía de Montería • Secretaría de Cultura • Informe de Analítica La Ronda Vive • Página ${i} de ${pageCount}`,
       105,
       290,
       { align: 'center' }
     );
   }
 
-  const fileName = `Informe_Analitica_Caracterizacion_RondaVive_Monteria_${new Date().toISOString().split('T')[0]}.pdf`;
+  const fileName = `Informe_Analitica_Caracterizacion_LaRondaVive_Monteria_${new Date().toISOString().split('T')[0]}.pdf`;
   doc.save(fileName);
 }

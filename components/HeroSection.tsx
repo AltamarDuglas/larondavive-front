@@ -59,7 +59,7 @@ export default function HeroSection() {
   }, []);
 
   return (
-    <section className="clean-hero" aria-label="Registro de Asistencia Ronda Vive">
+    <section className="clean-hero" aria-label="Registro de Asistencia La Ronda Vive">
       <div className="clean-hero__container">
         {/* Encabezado con el logo oficial de La Ronda Vive */}
         <div className="clean-hero__header">

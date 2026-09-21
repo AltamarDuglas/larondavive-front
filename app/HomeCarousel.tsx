@@ -12,8 +12,8 @@ const slides: Array<{
   accent: string;
 }> = [
   { image: rioSinu, label: 'Ronda del Sinu', accent: 'accent-blue' },
-  { image: rondaVive1, label: 'Ronda Vive', accent: 'accent-red' },
-  { image: rondaVive2, label: 'Ronda Vive', accent: 'accent-blue' }
+  { image: rondaVive1, label: 'La Ronda Vive', accent: 'accent-red' },
+  { image: rondaVive2, label: 'La Ronda Vive', accent: 'accent-blue' }
 ];
 
 export default function HomeCarousel() {
@@ -28,7 +28,7 @@ export default function HomeCarousel() {
   }, []);
 
   return (
-    <section className="hero-carousel" aria-label="Carrusel principal de Ronda Vive">
+    <section className="hero-carousel" aria-label="Carrusel principal de La Ronda Vive">
       <div className="hero-carousel__veil" />
       <div className="hero-carousel__stack">
         {slides.map((slide, index) => {

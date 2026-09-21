@@ -29,7 +29,7 @@ export default function AdminJornadaModal({
   };
 
   const [code, setCode] = useState<string>(generateDefaultCode());
-  const [title, setTitle] = useState<string>('Jornada Ronda Vive Calle 27');
+  const [title, setTitle] = useState<string>('Jornada La Ronda Vive Calle 27');
   const [location, setLocation] = useState<string>('Calle 27 con Avenida Primera, Montería');
   const [eventDate, setEventDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [status, setStatus] = useState<'activa' | 'programada' | 'finalizada'>('activa');
@@ -112,7 +112,7 @@ export default function AdminJornadaModal({
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Ej: Jornada Ronda Vive Arte & Río"
+              placeholder="Ej: Jornada La Ronda Vive Arte & Río"
               className="clean-input"
               required
             />
@@ -149,9 +149,9 @@ export default function AdminJornadaModal({
                 className="clean-select"
                 style={{ fontWeight: 700 }}
               >
-                <option value="activa">Activa (Acepta registros)</option>
+                <option value="activa">Activa</option>
                 <option value="programada">Programada</option>
-                <option value="finalizada">Finalizada (Bloqueada)</option>
+                <option value="finalizada">Finalizada</option>
               </select>
             </div>
           </div>

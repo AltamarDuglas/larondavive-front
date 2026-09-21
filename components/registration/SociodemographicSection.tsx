@@ -70,7 +70,7 @@ export default function SociodemographicSection({
         <div>
           <h3 className="section-title">Información Sociodemográfica del Asistente</h3>
           <p className="section-subtitle">
-            Caracterización sociodemográfica oficial de las personas asistentes a las jornadas de Ronda Vive.
+            Caracterización sociodemográfica oficial de las personas asistentes a las jornadas de La Ronda Vive.
           </p>
         </div>
       </div>

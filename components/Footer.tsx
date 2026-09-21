@@ -21,7 +21,7 @@ export default function Footer() {
             <strong>Alcaldía de Montería</strong>
           </div>
           <p className="footer-tagline">
-            Plataforma Digital <strong>Ronda Vive</strong>
+            Plataforma Digital <strong>La Ronda Vive</strong>
           </p>
           <p className="footer-location">
             Calle 27 con Avenida Primera, Montería, Córdoba.

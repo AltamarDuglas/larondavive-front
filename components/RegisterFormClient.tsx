@@ -800,7 +800,7 @@ export default function RegisterFormClient({
             <p>
               {isAlreadyRegistered
                 ? 'Ya contabas con un registro previo para esta jornada. Tus datos han sido actualizados y tu asistencia se reconfirmó.'
-                : 'Alcaldía de Montería • Ronda Vive en la Calle 27 con Av. Primera'}
+                : 'Alcaldía de Montería • La Ronda Vive en la Calle 27 con Av. Primera'}
             </p>
           </div>
 

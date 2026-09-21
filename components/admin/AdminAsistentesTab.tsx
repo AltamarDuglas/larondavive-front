@@ -43,7 +43,7 @@ export default function AdminAsistentesTab({
             <h3>Directorio General de Ciudadanos (Supabase)</h3>
             <p className="card-desc">
               Filtra y exporta los asistentes caracterizados en las jornadas de
-              Ronda Vive.
+              La Ronda Vive.
             </p>
           </div>
           <div className="admin-header-actions">

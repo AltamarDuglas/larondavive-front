@@ -1,6 +1,6 @@
-# Ronda Vive — Plataforma Digital de Registro de Asistencia Ciudadana
+# La Ronda Vive — Plataforma Digital de Registro de Asistencia Ciudadana
 
-**Ronda Vive** es la plataforma web oficial desarrollada para la **Alcaldía de Montería** destinada al registro digital de asistencia por código QR y la captura segura de información de los asistentes que participan en las jornadas periódicas de **Ronda Vive** en la **Calle 27 con Avenida Primera**.
+**La Ronda Vive** es la plataforma web oficial desarrollada para la **Alcaldía de Montería** destinada al registro digital de asistencia por código QR y la captura segura de información de los asistentes que participan en las jornadas periódicas de **La Ronda Vive** en la **Calle 27 con Avenida Primera**.
 
 > 🏢 **ENTREGA A TECNOLOGÍAS DE LA INFORMACIÓN (TI):**
 > Para entregar este proyecto al Ingeniero de Sistemas de la Alcaldía de Montería y desplegarlo en los servidores internos / ERP de la institución (sin Vercel ni Supabase), consulta la **[`Guía Oficial de Entrega y Despliegue en Servidores de la Alcaldía`](file:///c:/Users/Hewlett-Packard/OneDrive/Desktop/Ronda%20vive/MANUAL_DESPLIEGUE_SERVIDORES_ALCALDIA.md)**.

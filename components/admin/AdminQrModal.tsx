@@ -315,10 +315,10 @@ export default function AdminQrModal({ jornada, isOpen, onClose }: AdminQrModalP
       doc.setTextColor(100, 116, 139);
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(8.5);
-      doc.text('Alcaldía de Montería — Secretaría de Cultura • Plataforma Digital Ronda Vive', pageWidth / 2, pageHeight - 6, { align: 'center' });
+      doc.text('Alcaldía de Montería — Secretaría de Cultura • Plataforma Digital La Ronda Vive', pageWidth / 2, pageHeight - 6, { align: 'center' });
 
       // 7. Descargar archivo PDF
-      doc.save(`Pendon_QR_Horizontal_RondaVive_${jornada.code}.pdf`);
+      doc.save(`Pendon_QR_Horizontal_LaRondaVive_${jornada.code}.pdf`);
     } catch (error) {
       console.error('Error al generar el PDF del QR:', error);
       alert('Ocurrió un error al generar el PDF. Por favor reintenta.');

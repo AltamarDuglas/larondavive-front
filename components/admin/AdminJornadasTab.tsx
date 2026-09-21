@@ -83,7 +83,7 @@ export default function AdminJornadasTab({
         <div className="card-header-flex">
           <div>
             <span className="admin-badge-tag">Gestión de Jornadas</span>
-            <h3>Jornadas de Ronda Vive Registradas</h3>
+            <h3>Jornadas de La Ronda Vive Registradas</h3>
             <p className="card-desc">
               Toca cualquier jornada para ver sus detalles, cambiar estado, ver el pendón QR o eliminarla.
             </p>
@@ -254,9 +254,9 @@ export default function AdminJornadasTab({
                             className={`clean-select status-${j.status}`}
                             style={{ maxWidth: "200px", fontWeight: 700 }}
                           >
-                            <option value="activa">Activa (Acepta registros)</option>
+                            <option value="activa">Activa</option>
                             <option value="programada">Programada</option>
-                            <option value="finalizada">Finalizada (Bloqueada)</option>
+                            <option value="finalizada">Finalizada</option>
                           </select>
                         </div>
                       </div>
