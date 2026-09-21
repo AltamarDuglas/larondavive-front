@@ -65,6 +65,7 @@ export default function AdminPage() {
                 onCreateJornada={() => admin.setIsJornadaModalOpen(true)}
                 onSelectQrJornada={admin.setSelectedQrJornada}
                 onUpdateStatus={admin.handleUpdateJornadaStatus}
+                onUpdateTitle={admin.handleUpdateJornadaTitle}
               />
             )}
 

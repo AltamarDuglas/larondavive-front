@@ -9,6 +9,7 @@ import {
   signInAdmin,
   signOutAdmin,
   updateJornadaStatus,
+  updateJornadaTitle,
 } from "@/lib/supabaseClient";
 import {
   AdminTab,
@@ -27,7 +28,6 @@ const INITIAL_METRICS_SUMMARY: MetricsSummary = {
   tasaRetorno: "0%",
   totalNiñosAcompañantes: 0,
   porcentajeNacidosMonteria: "0%",
-  porcentajeHabeasData: "100%",
   porcentajeTerminos: "100%",
 };
 
@@ -45,7 +45,6 @@ const INITIAL_FULL_ANALYTICS: FullAnalyticsData = {
   populationGroupBreakdown: {},
   socialGroupCounts: {},
   otherSocialGroupSpecs: [],
-  habeasDataBreakdown: {},
   termsAcceptanceBreakdown: {},
   jornadaAttendanceCounts: {},
 };
@@ -101,7 +100,6 @@ export function useAdminDashboard() {
           tasaRetorno: data.tasaRetorno,
           totalNiñosAcompañantes: data.totalNiñosAcompañantes,
           porcentajeNacidosMonteria: data.porcentajeNacidosMonteria,
-          porcentajeHabeasData: data.porcentajeHabeasData,
           porcentajeTerminos: data.porcentajeTerminos,
         },
         ageBreakdown: data.ageBreakdown,
@@ -116,7 +114,6 @@ export function useAdminDashboard() {
         populationGroupBreakdown: data.populationGroupBreakdown,
         socialGroupCounts: data.socialGroupCounts,
         otherSocialGroupSpecs: data.otherSocialGroupSpecs,
-        habeasDataBreakdown: data.habeasDataBreakdown,
         termsAcceptanceBreakdown: data.termsAcceptanceBreakdown,
         jornadaAttendanceCounts: data.jornadaAttendanceCounts,
       });
@@ -184,6 +181,14 @@ export function useAdminDashboard() {
     loadRealSupabaseData(selectedJornadaFilter);
   };
 
+  const handleUpdateJornadaTitle = async (code: string, newTitle: string) => {
+    setJornadas((prev) =>
+      prev.map((j) => (j.code === code ? { ...j, title: newTitle } : j))
+    );
+    await updateJornadaTitle(code, newTitle);
+    loadRealSupabaseData(selectedJornadaFilter);
+  };
+
   const filteredAsistentes = useMemo(
     () =>
       asistentes.filter((item) => {
@@ -230,6 +235,7 @@ export function useAdminDashboard() {
     handleJornadaCreated,
     handleJornadaFilterChange,
     handleUpdateJornadaStatus,
+    handleUpdateJornadaTitle,
     handleLogin,
     handleLogout,
     isAuthenticated,

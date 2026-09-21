@@ -22,8 +22,6 @@ export interface MetricsSummary {
   totalNiñosAcompañantes: number;
   /** Porcentaje de ciudadanos nacidos en Montería */
   porcentajeNacidosMonteria: string;
-  /** Porcentaje de cumplimiento de Habeas Data */
-  porcentajeHabeasData: string;
   /** Porcentaje de aceptación de Términos Estímulos 2026 */
   porcentajeTerminos: string;
 }
@@ -77,10 +75,8 @@ export interface FullAnalyticsData {
   populationGroupBreakdown: Record<string, number>;
   socialGroupCounts: Record<string, number>;
   otherSocialGroupSpecs: string[];
-  habeasDataBreakdown: Record<string, number>;
   termsAcceptanceBreakdown: Record<string, number>;
   jornadaAttendanceCounts: Record<string, number>;
 }
 
 export type { AsistenteRecord, JornadaRecord, AsistenciaRecord };
-

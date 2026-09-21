@@ -319,6 +319,51 @@ export async function updateJornadaStatus(
 }
 
 /**
+ * Actualiza el título / nombre oficial de una Jornada Institucional en Supabase.
+ *
+ * @param code Código único de la jornada a modificar
+ * @param newTitle Nuevo título o nombre oficial
+ * @returns Promesa con estado booleano de éxito
+ */
+export async function updateJornadaTitle(
+  code: string,
+  newTitle: string
+): Promise<boolean> {
+  const cleanTitle = newTitle.trim();
+  if (!cleanTitle) return false;
+
+  if (supabase) {
+    try {
+      const { error } = await supabase
+        .from('jornadas')
+        .update({ title: cleanTitle, updated_at: new Date().toISOString() })
+        .eq('code', code);
+
+      if (!error) {
+        return true;
+      }
+    } catch {
+      // Fallback
+    }
+  }
+
+  // Fallback local
+  if (typeof window !== 'undefined') {
+    const local = localStorage.getItem('rv_custom_jornadas');
+    if (local) {
+      try {
+        const list: JornadaRecord[] = JSON.parse(local);
+        const updated = list.map((j) => (j.code === code ? { ...j, title: cleanTitle } : j));
+        localStorage.setItem('rv_custom_jornadas', JSON.stringify(updated));
+      } catch {
+        // Ignorar
+      }
+    }
+  }
+  return true;
+}
+
+/**
  * Sincronizar un registro de asistencia en Supabase (y respaldo local).
  * Detecta si el ciudadano ya contaba con un registro de asistencia previo para el mismo código de jornada.
  *
@@ -611,11 +656,7 @@ export async function getAdminMetrics(selectedJornadaCode: string = 'TODAS') {
   const socialGroupCounts: Record<string, number> = {};
   const otherSocialGroupSpecs: string[] = [];
 
-  // 12. Aspectos Legales
-  const habeasDataBreakdown: Record<string, number> = {
-    'Aceptado (Sí)': 0,
-    'Pendiente (No)': 0,
-  };
+  // 12. Aspectos Legales (Términos Estímulos 2026)
   const termsAcceptanceBreakdown: Record<string, number> = {
     'Aceptó Términos (SI)': 0,
     'Rechazó Términos (NO)': 0,
@@ -655,12 +696,14 @@ export async function getAdminMetrics(selectedJornadaCode: string = 'TODAS') {
     // Niños
     if (a.attended_with_children) {
       attendedWithChildrenBreakdown['Con Niños/as'] += 1;
-      const count = Number(a.children_count) || 1;
-      totalNiñosAcompañantes += count;
-      if (count === 1) childrenCountDistribution['1 niño'] += 1;
-      else if (count === 2) childrenCountDistribution['2 niños'] += 1;
-      else if (count === 3) childrenCountDistribution['3 niños'] += 1;
-      else if (count >= 4) childrenCountDistribution['4 o más niños'] += 1;
+      const count = Math.max(0, Number(a.children_count) || 0);
+      if (count > 0) {
+        totalNiñosAcompañantes += count;
+        if (count === 1) childrenCountDistribution['1 niño'] += 1;
+        else if (count === 2) childrenCountDistribution['2 niños'] += 1;
+        else if (count === 3) childrenCountDistribution['3 niños'] += 1;
+        else if (count >= 4) childrenCountDistribution['4 o más niños'] += 1;
+      }
     } else {
       attendedWithChildrenBreakdown['Sin Niños/as'] += 1;
     }
@@ -689,13 +732,7 @@ export async function getAdminMetrics(selectedJornadaCode: string = 'TODAS') {
       }
     }
 
-    // Habeas Data & Términos
-    if (a.accepted_habeas_data) {
-      habeasDataBreakdown['Aceptado (Sí)'] += 1;
-    } else {
-      habeasDataBreakdown['Pendiente (No)'] += 1;
-    }
-
+    // Términos
     if (a.accepted_terms === 'SI') {
       termsAcceptanceBreakdown['Aceptó Términos (SI)'] += 1;
     } else {
@@ -730,11 +767,6 @@ export async function getAdminMetrics(selectedJornadaCode: string = 'TODAS') {
       ? `${((bornInMonteriaBreakdown['Nacidos en Montería'] / totalCiudadanos) * 100).toFixed(1)}%`
       : '0%';
 
-  const porcentajeHabeasData =
-    totalCiudadanos > 0
-      ? `${((habeasDataBreakdown['Aceptado (Sí)'] / totalCiudadanos) * 100).toFixed(1)}%`
-      : '100%';
-
   const porcentajeTerminos =
     totalCiudadanos > 0
       ? `${((termsAcceptanceBreakdown['Aceptó Términos (SI)'] / totalCiudadanos) * 100).toFixed(1)}%`
@@ -748,7 +780,6 @@ export async function getAdminMetrics(selectedJornadaCode: string = 'TODAS') {
     totalJornadas: jornadas.length,
     totalNiñosAcompañantes,
     porcentajeNacidosMonteria,
-    porcentajeHabeasData,
     porcentajeTerminos,
     ageBreakdown,
     genderBreakdown,
@@ -762,7 +793,6 @@ export async function getAdminMetrics(selectedJornadaCode: string = 'TODAS') {
     populationGroupBreakdown,
     socialGroupCounts,
     otherSocialGroupSpecs,
-    habeasDataBreakdown,
     termsAcceptanceBreakdown,
     jornadaAttendanceCounts,
     jornadas,
