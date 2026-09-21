@@ -64,6 +64,7 @@ export default function AdminJornadasTab({
   };
 
   const handleDelete = (code: string, count: number, e: React.MouseEvent) => {
+    e.preventDefault();
     e.stopPropagation();
     if (count > 0) {
       const confirmMsg = `ADVERTENCIA: Esta jornada tiene ${count} personas registradas. ¿Estás seguro de que deseas eliminarla del sistema?`;

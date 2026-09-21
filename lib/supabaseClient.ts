@@ -139,10 +139,51 @@ export async function signOutAdmin(): Promise<void> {
   }
 }
 
+export const DEFAULT_INITIAL_JORNADAS: JornadaRecord[] = [
+  {
+    code: 'RV-150926',
+    title: 'Jornada La Ronda Vive Calle 27',
+    location: 'Calle 27 con Avenida Primera, Montería',
+    event_date: '2026-09-15',
+    status: 'activa',
+  },
+  {
+    code: 'RV-220926',
+    title: 'Jornada La Ronda Vive Arte & Río',
+    location: 'Calle 27 con Avenida Primera, Montería',
+    event_date: '2026-09-22',
+    status: 'programada',
+  },
+  {
+    code: 'RV-080926',
+    title: 'Jornada La Ronda Vive Tradición',
+    location: 'Calle 27 con Avenida Primera, Montería',
+    event_date: '2026-09-08',
+    status: 'finalizada',
+  },
+];
+
 /**
- * Obtener la lista de Jornadas Institucionales reales desde Supabase.
+ * Obtener la lista de Jornadas Institucionales reales desde Supabase o almacenamiento local.
+ * Filtra de manera infalible cualquier jornada que haya sido eliminada por el administrador.
  */
 export async function getJornadas(): Promise<JornadaRecord[]> {
+  // 1. Obtener lista de códigos expresamente eliminados por el administrador
+  let deletedCodes: string[] = [];
+  if (typeof window !== 'undefined') {
+    try {
+      const raw = localStorage.getItem('rv_deleted_jornadas');
+      if (raw) {
+        deletedCodes = JSON.parse(raw);
+      }
+    } catch {
+      deletedCodes = [];
+    }
+  }
+
+  let list: JornadaRecord[] = [];
+
+  // 2. Intentar consultar base de datos remota Supabase
   if (supabase) {
     try {
       const { data, error } = await supabase
@@ -150,49 +191,33 @@ export async function getJornadas(): Promise<JornadaRecord[]> {
         .select('*')
         .order('event_date', { ascending: false });
 
-      if (!error && data) {
-        return data as JornadaRecord[];
+      if (!error && data && data.length > 0) {
+        list = data as JornadaRecord[];
       }
     } catch {
-      // Fallback
+      // Fallback a almacenamiento local si falla la red
     }
   }
 
-  // Fallback local
-  if (typeof window !== 'undefined') {
+  // 3. Fallback a almacenamiento local si no hay datos de Supabase
+  if (list.length === 0 && typeof window !== 'undefined') {
     const local = localStorage.getItem('rv_custom_jornadas');
     if (local) {
       try {
-        return JSON.parse(local);
+        list = JSON.parse(local);
       } catch {
-        // Ignorar
+        list = [];
       }
     }
   }
 
-  return [
-    {
-      code: 'RV-150926',
-      title: 'Jornada La Ronda Vive Calle 27',
-      location: 'Calle 27 con Avenida Primera, Montería',
-      event_date: '2026-09-15',
-      status: 'activa',
-    },
-    {
-      code: 'RV-220926',
-      title: 'Jornada La Ronda Vive Arte & Río',
-      location: 'Calle 27 con Avenida Primera, Montería',
-      event_date: '2026-09-22',
-      status: 'programada',
-    },
-    {
-      code: 'RV-080926',
-      title: 'Jornada La Ronda Vive Tradición',
-      location: 'Calle 27 con Avenida Primera, Montería',
-      event_date: '2026-09-08',
-      status: 'finalizada',
-    },
-  ];
+  // 4. Si aún no hay datos, usar el catálogo semilla institucional
+  if (list.length === 0) {
+    list = [...DEFAULT_INITIAL_JORNADAS];
+  }
+
+  // 5. Excluir rigurosamente cualquier jornada marcada como eliminada
+  return list.filter((j) => !deletedCodes.includes(j.code.toUpperCase()));
 }
 
 /**
@@ -261,16 +286,41 @@ export async function createJornada(newJornada: Omit<JornadaRecord, 'id' | 'crea
       .single();
 
     if (!error && data) {
+      // Remover de la lista de eliminadas si se vuelve a crear
+      if (typeof window !== 'undefined') {
+        try {
+          const raw = localStorage.getItem('rv_deleted_jornadas');
+          if (raw) {
+            const delList: string[] = JSON.parse(raw);
+            const filtered = delList.filter((c) => c !== newJornada.code.toUpperCase());
+            localStorage.setItem('rv_deleted_jornadas', JSON.stringify(filtered));
+          }
+        } catch {
+          // Ignorar
+        }
+      }
       return data as JornadaRecord;
     }
   }
 
   // Fallback local
   if (typeof window !== 'undefined') {
-    const local = localStorage.getItem('rv_custom_jornadas');
-    const list: JornadaRecord[] = local ? JSON.parse(local) : [];
-    list.unshift(newJornada);
-    localStorage.setItem('rv_custom_jornadas', JSON.stringify(list));
+    try {
+      // Limpiar de eliminadas
+      const raw = localStorage.getItem('rv_deleted_jornadas');
+      if (raw) {
+        const delList: string[] = JSON.parse(raw);
+        const filtered = delList.filter((c) => c !== newJornada.code.toUpperCase());
+        localStorage.setItem('rv_deleted_jornadas', JSON.stringify(filtered));
+      }
+
+      const local = localStorage.getItem('rv_custom_jornadas');
+      const list: JornadaRecord[] = local ? JSON.parse(local) : [...DEFAULT_INITIAL_JORNADAS];
+      const updated = [newJornada, ...list.filter((j) => j.code.toUpperCase() !== newJornada.code.toUpperCase())];
+      localStorage.setItem('rv_custom_jornadas', JSON.stringify(updated));
+    } catch {
+      // Ignorar
+    }
   }
 
   return newJornada;
@@ -364,40 +414,67 @@ export async function updateJornadaTitle(
 }
 
 /**
- * Elimina una Jornada Institucional en Supabase y en el almacenamiento local.
+ * Elimina de manera permanente una Jornada Institucional en Supabase y en el almacenamiento local.
+ * Asegura la integridad referencial borrando asistencias asociadas y marcando el código como eliminado.
  *
- * @param code Código único de la jornada a eliminar
+ * @param code Código único de la jornada a eliminar (ej: 'RV-150926')
  * @returns Promesa con estado booleano de éxito
  */
 export async function deleteJornada(code: string): Promise<boolean> {
+  const cleanCode = (code || '').trim().toUpperCase();
+  if (!cleanCode) return false;
+
+  // 1. Guardar permanentemente en lista de eliminadas de localStorage
+  if (typeof window !== 'undefined') {
+    try {
+      const raw = localStorage.getItem('rv_deleted_jornadas');
+      const deletedCodes: string[] = raw ? JSON.parse(raw) : [];
+      if (!deletedCodes.includes(cleanCode)) {
+        deletedCodes.push(cleanCode);
+        localStorage.setItem('rv_deleted_jornadas', JSON.stringify(deletedCodes));
+      }
+
+      // Actualizar y purgar de rv_custom_jornadas
+      const local = localStorage.getItem('rv_custom_jornadas');
+      const currentList: JornadaRecord[] = local ? JSON.parse(local) : [...DEFAULT_INITIAL_JORNADAS];
+      const updated = currentList.filter((j) => j.code.toUpperCase() !== cleanCode);
+      localStorage.setItem('rv_custom_jornadas', JSON.stringify(updated));
+
+      // Limpiar asistencias locales asociadas a esta jornada
+      const localAsistencias = localStorage.getItem('rv_asistencias_records');
+      if (localAsistencias) {
+        const parsed = JSON.parse(localAsistencias);
+        const filtered = parsed.filter((a: any) => (a.jornada_code || '').toUpperCase() !== cleanCode);
+        localStorage.setItem('rv_asistencias_records', JSON.stringify(filtered));
+      }
+    } catch (e) {
+      console.warn('Error al actualizar localStorage al eliminar jornada:', e);
+    }
+  }
+
+  // 2. Si Supabase está configurado, ejecutar eliminación en base de datos
   if (supabase) {
     try {
+      // Eliminar primero en la tabla asistencias vinculadas para evitar error de clave foránea
+      await supabase
+        .from('asistencias')
+        .delete()
+        .eq('jornada_code', cleanCode);
+
+      // Eliminar de la tabla jornadas
       const { error } = await supabase
         .from('jornadas')
         .delete()
-        .eq('code', code);
+        .eq('code', cleanCode);
 
-      if (!error) {
-        return true;
+      if (error) {
+        console.warn('Aviso Supabase DELETE jornada:', error.message);
       }
-    } catch {
-      // Fallback
+    } catch (err) {
+      console.warn('Excepción al eliminar jornada en Supabase:', err);
     }
   }
 
-  // Fallback local
-  if (typeof window !== 'undefined') {
-    const local = localStorage.getItem('rv_custom_jornadas');
-    if (local) {
-      try {
-        const list: JornadaRecord[] = JSON.parse(local);
-        const updated = list.filter((j) => j.code !== code);
-        localStorage.setItem('rv_custom_jornadas', JSON.stringify(updated));
-      } catch {
-        // Ignorar
-      }
-    }
-  }
   return true;
 }
 

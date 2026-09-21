@@ -191,9 +191,20 @@ export function useAdminDashboard() {
   };
 
   const handleDeleteJornada = async (code: string) => {
-    setJornadas((prev) => prev.filter((j) => j.code !== code));
+    // 1. Eliminación visual inmediata (optimistic update)
+    setJornadas((prev) => prev.filter((j) => j.code.toUpperCase() !== code.toUpperCase()));
+
+    // Si la jornada eliminada estaba activa en el filtro, reiniciar a 'TODAS'
+    const nextFilter = selectedJornadaFilter.toUpperCase() === code.toUpperCase() ? "TODAS" : selectedJornadaFilter;
+    if (selectedJornadaFilter.toUpperCase() === code.toUpperCase()) {
+      setSelectedJornadaFilter("TODAS");
+    }
+
+    // 2. Ejecutar borrado permanente en backend y almacenamiento local
     await deleteJornada(code);
-    loadRealSupabaseData(selectedJornadaFilter);
+
+    // 3. Sincronizar datos y analíticas
+    await loadRealSupabaseData(nextFilter);
   };
 
   const filteredAsistentes = useMemo(
