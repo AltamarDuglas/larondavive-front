@@ -847,12 +847,24 @@
   transition: width 400ms ease;
 }
 
+.fill-blue {
+  background: linear-gradient(90deg, #2563eb, #3b82f6) !important;
+}
+
+.fill-red {
+  background: linear-gradient(90deg, #dc2626, #ef4444) !important;
+}
+
+.fill-dark {
+  background: linear-gradient(90deg, #0f172a, #334155) !important;
+}
+
 .fill-green {
-  background: linear-gradient(90deg, #16a34a, #22c55e);
+  background: linear-gradient(90deg, #16a34a, #22c55e) !important;
 }
 
 .fill-purple {
-  background: linear-gradient(90deg, #9333ea, #a855f7);
+  background: linear-gradient(90deg, #9333ea, #a855f7) !important;
 }
 
 .analytics-subblock h4 {
