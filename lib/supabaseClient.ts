@@ -229,17 +229,16 @@ export async function validateJornadaCode(codeInput: string): Promise<{
     };
   }
 
-  // 2. Comprobar fecha de vencimiento y estado institucional de la jornada
-  const todayStr = new Date().toISOString().split('T')[0];
+  // 2. Comprobar estado institucional de la jornada (Control exclusivo por el administrador)
+  // La jornada se bloquea ÚNICAMENTE si el administrador la cambia a estado 'finalizada' en el panel admin.
   const isStatusFinalized = match.status === 'finalizada';
-  const isPastDate = match.event_date ? match.event_date < todayStr : false;
 
-  if (isStatusFinalized || isPastDate) {
+  if (isStatusFinalized) {
     return {
       isValid: true,
       isExpired: true,
       jornada: match,
-      error: `La jornada "${match.title}" (${match.code}) ya ha finalizado. No es posible registrar asistencias para jornadas pasadas.`,
+      error: `La jornada "${match.title}" (${match.code}) se encuentra finalizada en el panel de administración. Para recibir registros, cámbiala a 'activa' en el panel admin.`,
     };
   }
 
@@ -816,8 +815,9 @@ export function exportToExcel(asistentes: AsistenteRecord[], filename?: string):
 }
 
 /**
- * Exportación NATIVA a documento PDF Ejecutivo de Analítica y Caracterización Demográfica.
- * Diseñado exclusivamente para presentar informe de analítica municipal (sin listado individual de asistentes).
+ * Exportación NATIVA a documento PDF Ejecutivo de Analítica y Caracterización Demográfica Completa.
+ * Diseñado para presentar el reporte completo municipal con el 100% de los indicadores.
+ * Sin Emojis: Formato ultra-limpio con tablas ejecutivas de alta legibilidad.
  */
 export function exportToPDF(
   asistentes: AsistenteRecord[],
@@ -826,14 +826,16 @@ export function exportToPDF(
     asistenciasAcumuladas: number;
     tasaRetorno: string;
     confirmacionesQr: string;
+    totalNiñosAcompañantes?: number;
+    porcentajeNacidosMonteria?: string;
   }
 ): void {
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
 
-  // Colores Institucionales de Montería (Rojo, Azul, Oscuro)
+  // Colores Institucionales de Montería (Azul, Rojo, Oscuro, Gris)
   const primaryBlue: [number, number, number] = [37, 99, 235];
   const primaryRed: [number, number, number] = [220, 38, 38];
-  const textDark: [number, number, number] = [15, 23, 42];
+  const primaryDark: [number, number, number] = [15, 23, 42];
   const textMuted: [number, number, number] = [100, 116, 139];
 
   const total = asistentes.length || 1;
@@ -850,13 +852,13 @@ export function exportToPDF(
 
   doc.setFontSize(13);
   doc.setFont('helvetica', 'bold');
-  doc.setTextColor(textDark[0], textDark[1], textDark[2]);
-  doc.text('INFORME DE ANALÍTICA Y CARACTERIZACIÓN CIUDADANA', 14, 28);
+  doc.setTextColor(primaryDark[0], primaryDark[1], primaryDark[2]);
+  doc.text('INFORME COMPLETO DE ANALÍTICA Y CARACTERIZACIÓN CIUDADANA', 14, 28);
 
   doc.setFontSize(8.5);
   doc.setFont('helvetica', 'normal');
   doc.text(
-    `Plataforma Ronda Vive • Calle 27 con Av. Primera • Fecha: ${new Date().toLocaleDateString('es-CO')}`,
+    `Plataforma Ronda Vive • Calle 27 con Av. Primera • Emisión: ${new Date().toLocaleDateString('es-CO')}`,
     14,
     33
   );
@@ -870,16 +872,20 @@ export function exportToPDF(
   doc.setFontSize(9.5);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(primaryBlue[0], primaryBlue[1], primaryBlue[2]);
-  doc.text('1. RESUMEN DE INDICADORES CLAVE DE ASISTENCIA', 14, 42);
+  doc.text('1. RESUMEN DE INDICADORES CLAVE DE ASISTENCIA Y COBERTURA', 14, 42);
 
   const kpiData = [
     [
       `Ciudadanos Caracterizados: ${metrics.totalCiudadanos.toLocaleString('es-CO')}`,
-      `Asistencias Acumuladas: ${metrics.asistenciasAcumuladas.toLocaleString('es-CO')}`,
+      `Ingresos Confirmados QR: ${metrics.asistenciasAcumuladas.toLocaleString('es-CO')}`,
     ],
     [
       `Confirmación por QR: ${metrics.confirmacionesQr}`,
       `Tasa de Retorno Recurrente: ${metrics.tasaRetorno}`,
+    ],
+    [
+      `Niños/as Acompañantes: ${metrics.totalNiñosAcompañantes || 0}`,
+      `Nacidos en Montería: ${metrics.porcentajeNacidosMonteria || '0%'}`,
     ],
   ];
 
@@ -887,17 +893,17 @@ export function exportToPDF(
     startY: 45,
     body: kpiData,
     theme: 'plain',
-    styles: { fontSize: 8.5, cellPadding: 2.5, fontStyle: 'bold', textColor: textDark },
+    styles: { fontSize: 8.5, cellPadding: 2.5, fontStyle: 'bold', textColor: primaryDark },
     margin: { left: 14, right: 14 },
   });
 
   let currentY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 6;
 
-  // 3. Caracterización por Rango de Edad
+  // 3. Rangos de Edad e Identidad de Género
   doc.setFontSize(9.5);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(primaryBlue[0], primaryBlue[1], primaryBlue[2]);
-  doc.text('2. CARACTERIZACIÓN ETARIA (RANGOS DE EDAD)', 14, currentY);
+  doc.text('2. DEMOGRAFÍA (RANGOS DE EDAD E IDENTIDAD DE GÉNERO)', 14, currentY);
 
   const ageCounts: Record<string, number> = {
     '18 a 28 años': 0,
@@ -906,65 +912,134 @@ export function exportToPDF(
     '60 a 69 años': 0,
     '70 años o más': 0,
   };
+  const genderCounts: Record<string, number> = {};
 
   asistentes.forEach((a) => {
     if (a.age_range) ageCounts[a.age_range] = (ageCounts[a.age_range] || 0) + 1;
+    if (a.gender_identity) genderCounts[a.gender_identity] = (genderCounts[a.gender_identity] || 0) + 1;
   });
 
-  const ageRows = Object.entries(ageCounts).map(([range, cnt]) => [
-    range,
+  const demoRows = [
+    ...Object.entries(ageCounts).map(([r, cnt]) => [`Rango de Edad: ${r}`, cnt.toString(), `${((cnt / total) * 100).toFixed(1)}%`]),
+    ...Object.entries(genderCounts).map(([g, cnt]) => [`Identidad de Género: ${g}`, cnt.toString(), `${((cnt / total) * 100).toFixed(1)}%`]),
+  ];
+
+  autoTable(doc, {
+    startY: currentY + 3,
+    head: [['Categoría Demográfica', 'Total Asistentes', 'Porcentaje del Total']],
+    body: demoRows,
+    theme: 'striped',
+    headStyles: { fillColor: primaryBlue, textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 8 },
+    bodyStyles: { fontSize: 8, textColor: primaryDark },
+    margin: { left: 14, right: 14 },
+  });
+
+  currentY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 6;
+
+  // 4. Origen Geográfico y Acompañamiento de Niños/as
+  doc.setFontSize(9.5);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(primaryBlue[0], primaryBlue[1], primaryBlue[2]);
+  doc.text('3. ORIGEN DE NACIMIENTO Y COMPOSICIÓN FAMILIAR', 14, currentY);
+
+  let nacidosMonteria = 0;
+  let nacidosFuera = 0;
+  const birthLocationCounts: Record<string, number> = {};
+  let conNiños = 0;
+  let sinNiños = 0;
+
+  asistentes.forEach((a) => {
+    if (a.born_in_monteria) {
+      nacidosMonteria += 1;
+    } else {
+      nacidosFuera += 1;
+      if (a.birth_location && a.birth_location !== 'Montería (Córdoba)') {
+        birthLocationCounts[a.birth_location] = (birthLocationCounts[a.birth_location] || 0) + 1;
+      }
+    }
+    if (a.attended_with_children) conNiños += 1;
+    else sinNiños += 1;
+  });
+
+  const topBirths = Object.entries(birthLocationCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5)
+    .map(([loc, cnt]) => `Origen Fuera: ${loc} (${cnt})`)
+    .join(', ');
+
+  const originRows = [
+    ['Nacidos en Montería', nacidosMonteria.toString(), `${((nacidosMonteria / total) * 100).toFixed(1)}%`],
+    ['Nacidos fuera de Montería', nacidosFuera.toString(), `${((nacidosFuera / total) * 100).toFixed(1)}%`],
+    ['Principales municipios de origen', topBirths || 'N/A', '-'],
+    ['Asistencia con Niños/as', conNiños.toString(), `${((conNiños / total) * 100).toFixed(1)}%`],
+    ['Asistencia sin Niños/as', sinNiños.toString(), `${((sinNiños / total) * 100).toFixed(1)}%`],
+  ];
+
+  autoTable(doc, {
+    startY: currentY + 3,
+    head: [['Indicador Familiar / Origen', 'Conteo / Detalle', 'Porcentaje']],
+    body: originRows,
+    theme: 'striped',
+    headStyles: { fillColor: primaryRed, textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 8 },
+    bodyStyles: { fontSize: 8, textColor: primaryDark },
+    margin: { left: 14, right: 14 },
+  });
+
+  currentY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 6;
+
+  // Si nos acercamos al final de la página, agregar nueva página
+  if (currentY > 220) {
+    doc.addPage();
+    currentY = 20;
+  }
+
+  // 5. Cobertura por Comunas y Zona Territorial
+  doc.setFontSize(9.5);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(primaryBlue[0], primaryBlue[1], primaryBlue[2]);
+  doc.text('4. DISTRIBUCIÓN POR COMUNAS (1-9) Y ZONA TERRITORIAL', 14, currentY);
+
+  const comunaCounts: Record<string, number> = {};
+  const zoneCounts: Record<string, number> = {};
+
+  asistentes.forEach((a) => {
+    if (a.comuna) comunaCounts[a.comuna] = (comunaCounts[a.comuna] || 0) + 1;
+    if (a.zone) zoneCounts[a.zone] = (zoneCounts[a.zone] || 0) + 1;
+  });
+
+  const comunaRows = Object.entries(comunaCounts).map(([c, cnt]) => [
+    `Comuna: ${c}`,
+    cnt.toString(),
+    `${((cnt / total) * 100).toFixed(1)}%`,
+  ]);
+  const zoneRows = Object.entries(zoneCounts).map(([z, cnt]) => [
+    `Zona: ${z}`,
     cnt.toString(),
     `${((cnt / total) * 100).toFixed(1)}%`,
   ]);
 
   autoTable(doc, {
     startY: currentY + 3,
-    head: [['Rango de Edad', 'Total Asistentes', 'Porcentaje del Total']],
-    body: ageRows,
+    head: [['Comuna / Zona Territorial', 'Total Registros', 'Porcentaje']],
+    body: [...comunaRows, ...zoneRows],
     theme: 'striped',
-    headStyles: { fillColor: primaryBlue, textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 8 },
-    bodyStyles: { fontSize: 8, textColor: textDark },
+    headStyles: { fillColor: primaryDark, textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 8 },
+    bodyStyles: { fontSize: 8, textColor: primaryDark },
     margin: { left: 14, right: 14 },
   });
 
   currentY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 6;
 
-  // 4. Caracterización por Género y Zona Territorial
+  if (currentY > 220) {
+    doc.addPage();
+    currentY = 20;
+  }
+
+  // 6. Top 10 Barrios de Montería
   doc.setFontSize(9.5);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(primaryBlue[0], primaryBlue[1], primaryBlue[2]);
-  doc.text('3. GÉNERO Y COBERTURA TERRITORIAL (URBANA / RURAL)', 14, currentY);
-
-  const genderCounts: Record<string, number> = {};
-  const zoneCounts: Record<string, number> = {};
-
-  asistentes.forEach((a) => {
-    if (a.gender_identity) genderCounts[a.gender_identity] = (genderCounts[a.gender_identity] || 0) + 1;
-    if (a.zone) zoneCounts[a.zone] = (zoneCounts[a.zone] || 0) + 1;
-  });
-
-  const genderZoneRows = [
-    ...Object.entries(genderCounts).map(([g, cnt]) => [`Género: ${g}`, cnt.toString(), `${((cnt / total) * 100).toFixed(1)}%`]),
-    ...Object.entries(zoneCounts).map(([z, cnt]) => [`Zona Territorial: ${z}`, cnt.toString(), `${((cnt / total) * 100).toFixed(1)}%`]),
-  ];
-
-  autoTable(doc, {
-    startY: currentY + 3,
-    head: [['Categoría Demográfica', 'Total Asistentes', 'Porcentaje']],
-    body: genderZoneRows,
-    theme: 'striped',
-    headStyles: { fillColor: primaryRed, textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 8 },
-    bodyStyles: { fontSize: 8, textColor: textDark },
-    margin: { left: 14, right: 14 },
-  });
-
-  currentY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 6;
-
-  // 5. Ranking Top Barrios de Montería
-  doc.setFontSize(9.5);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(primaryBlue[0], primaryBlue[1], primaryBlue[2]);
-  doc.text('4. TOP BARRIOS DE MAYOR PARTICIPACIÓN CIUDADANA EN MONTERÍA', 14, currentY);
+  doc.text('5. TOP BARRIOS DE MAYOR PARTICIPACIÓN CIUDADANA EN MONTERÍA', 14, currentY);
 
   const barrioCounts: Record<string, number> = {};
   asistentes.forEach((a) => {
@@ -973,7 +1048,7 @@ export function exportToPDF(
 
   const topBarriosRows = Object.entries(barrioCounts)
     .sort((a, b) => b[1] - a[1])
-    .slice(0, 8)
+    .slice(0, 10)
     .map(([barrioName, cnt], idx) => [
       `${idx + 1}`,
       barrioName,
@@ -987,11 +1062,47 @@ export function exportToPDF(
     body: topBarriosRows.length > 0 ? topBarriosRows : [['1', 'Sin registros suficientes', '0', '0%']],
     theme: 'striped',
     headStyles: { fillColor: primaryBlue, textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 8 },
-    bodyStyles: { fontSize: 8, textColor: textDark },
+    bodyStyles: { fontSize: 8, textColor: primaryDark },
     margin: { left: 14, right: 14 },
   });
 
-  // Pie de página institucional
+  currentY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 6;
+
+  if (currentY > 220) {
+    doc.addPage();
+    currentY = 20;
+  }
+
+  // 7. Pertenencia Étnica y Sujetos de Especial Protección
+  doc.setFontSize(9.5);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(primaryBlue[0], primaryBlue[1], primaryBlue[2]);
+  doc.text('6. PERTENENCIA ÉTNICA Y SUJETOS DE ESPECIAL PROTECCIÓN SOCIAL', 14, currentY);
+
+  const populationGroupCounts: Record<string, number> = {};
+  const socialGroupCounts: Record<string, number> = {};
+
+  asistentes.forEach((a) => {
+    if (a.population_group) populationGroupCounts[a.population_group] = (populationGroupCounts[a.population_group] || 0) + 1;
+    if (a.social_group) socialGroupCounts[a.social_group] = (socialGroupCounts[a.social_group] || 0) + 1;
+  });
+
+  const socialRows = [
+    ...Object.entries(populationGroupCounts).map(([p, cnt]) => [`Grupo Étnico/Poblacional: ${p}`, cnt.toString(), `${((cnt / total) * 100).toFixed(1)}%`]),
+    ...Object.entries(socialGroupCounts).map(([s, cnt]) => [`Sujeto de Protección: ${s}`, cnt.toString(), `${((cnt / total) * 100).toFixed(1)}%`]),
+  ];
+
+  autoTable(doc, {
+    startY: currentY + 3,
+    head: [['Grupo Poblacional / Social', 'Total Registros', 'Porcentaje']],
+    body: socialRows,
+    theme: 'striped',
+    headStyles: { fillColor: primaryRed, textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 8 },
+    bodyStyles: { fontSize: 8, textColor: primaryDark },
+    margin: { left: 14, right: 14 },
+  });
+
+  // Pie de página institucional en todas las páginas
   const pageCount = doc.getNumberOfPages();
   for (let i = 1; i <= pageCount; i++) {
     doc.setPage(i);

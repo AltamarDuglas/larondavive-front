@@ -29,6 +29,7 @@ interface AdminAnalyticsTabProps {
  * Pestaña de Analítica General y Caracterización Sociodemográfica del Panel Administrador.
  * Principio SOLID - SRP: Presentación desacoplada y estructurada de desgloses estadísticos.
  * Mobile-First: Optimizado con tarjetas fluidas, rejillas adaptables y gráficos vectoriales SVG táctiles.
+ * Sin Emojis: Utiliza exclusivamente íconos vectoriales SVG limpios.
  */
 export default function AdminAnalyticsTab({
   fullAnalytics,
@@ -53,8 +54,6 @@ export default function AdminAnalyticsTab({
     populationGroupBreakdown,
     socialGroupCounts,
     otherSocialGroupSpecs,
-    habeasDataBreakdown,
-    termsAcceptanceBreakdown,
     jornadaAttendanceCounts,
   } = fullAnalytics;
 
@@ -94,11 +93,8 @@ export default function AdminAnalyticsTab({
     { label: "Ninguno / General", value: populationGroupBreakdown["Ninguno"] || 0, color: "#475569" },
   ];
 
-  // Transformación para Gráfico de Dona: Habeas Data
-  const habeasSlices = [
-    { label: "Autorizado (Sí)", value: habeasDataBreakdown["Aceptado (Sí)"] || 0, color: "#16a34a" },
-    { label: "Pendiente (No)", value: habeasDataBreakdown["Pendiente (No)"] || 0, color: "#dc2626" },
-  ];
+  // Conteo total de nacidos fuera de Montería para barras relativas
+  const totalNacidosFuera = bornInMonteriaBreakdown["Nacidos fuera de Montería"] || 1;
 
   return (
     <section className="admin-tab-content">
@@ -106,7 +102,7 @@ export default function AdminAnalyticsTab({
       <div className="admin-card admin-filter-header-card" style={{ marginBottom: "20px" }}>
         <div className="card-header-flex">
           <div>
-            <span className="admin-badge-tag">Analítica Municipal 100% Completa</span>
+            <span className="admin-badge-tag">Analítica Municipal Completa</span>
             <h3>Caracterización Sociodemográfica y Reporte de Datos</h3>
             <p className="card-desc">
               Visualización de indicadores de participación, perfilación demográfica, origen, niñez, comunas y protección especial.
@@ -125,7 +121,7 @@ export default function AdminAnalyticsTab({
                 value={selectedJornadaFilter}
                 onChange={(e) => onJornadaFilterChange(e.target.value)}
               >
-                <option value="TODAS">📍 Todas las Jornadas (Acumulado General)</option>
+                <option value="TODAS">Todas las Jornadas (Acumulado General)</option>
                 {jornadas.map((j) => (
                   <option key={j.code} value={j.code}>
                     {j.code} — {j.title} ({j.status})
@@ -134,7 +130,7 @@ export default function AdminAnalyticsTab({
               </select>
             </div>
 
-            {/* BOTONES DE EXPORTACIÓN */}
+            {/* BOTONES DE EXPORTACIÓN CON ÍCONOS SVG VECTORIALES */}
             <div className="export-btn-group">
               <button
                 type="button"
@@ -142,7 +138,14 @@ export default function AdminAnalyticsTab({
                 onClick={onExportPDF}
                 title="Descargar Informe Ejecutivo en PDF"
               >
-                📄 PDF
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                  <polyline points="14 2 14 8 20 8" />
+                  <line x1="16" y1="13" x2="8" y2="13" />
+                  <line x1="16" y1="17" x2="8" y2="17" />
+                  <polyline points="10 9 9 9 8 9" />
+                </svg>
+                PDF
               </button>
               <button
                 type="button"
@@ -150,7 +153,14 @@ export default function AdminAnalyticsTab({
                 onClick={onExportExcel}
                 title="Exportar a Excel"
               >
-                📊 Excel
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                  <line x1="9" y1="3" x2="9" y2="21" />
+                  <line x1="15" y1="3" x2="15" y2="21" />
+                  <line x1="3" y1="9" x2="21" y2="9" />
+                  <line x1="3" y1="15" x2="21" y2="15" />
+                </svg>
+                Excel
               </button>
               <button
                 type="button"
@@ -158,47 +168,85 @@ export default function AdminAnalyticsTab({
                 onClick={onExportCSV}
                 title="Exportar CSV"
               >
-                📥 CSV
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+                CSV
               </button>
             </div>
           </div>
         </div>
       </div>
 
-      {/* SECCIÓN 1: TARJETAS MÉTRICAS KPI (RESPONSIVAS MOBILE-FIRST) */}
+      {/* SECCIÓN 1: TARJETAS MÉTRICAS KPI CON ÍCONOS VECTORIALES SVG */}
       <div className="admin-stat-cards-grid" style={{ marginBottom: "24px" }}>
         <AnalyticsStatCard
           title="Ciudadanos Caracterizados"
           value={metricsSummary.totalCiudadanos}
-          icon="👥"
+          icon={
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+            </svg>
+          }
           subtitle="Registros únicos en la plataforma"
           variant="blue"
         />
         <AnalyticsStatCard
           title="Ingresos Confirmados QR"
           value={metricsSummary.asistenciasAcumuladas}
-          icon="🎟️"
+          icon={
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+              <polyline points="22 4 12 14.01 9 11.01" />
+            </svg>
+          }
           subtitle={`Tasa de Confirmación: ${metricsSummary.confirmacionesQr}`}
           variant="green"
         />
         <AnalyticsStatCard
           title="Niños/as Acompañantes"
           value={metricsSummary.totalNiñosAcompañantes}
-          icon="🧸"
+          icon={
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#9333ea" strokeWidth="2">
+              <circle cx="12" cy="7" r="4" />
+              <path d="M5.5 21v-2a6.5 6.5 0 0 1 13 0v2" />
+            </svg>
+          }
           subtitle="Acompañamiento en núcleo familiar"
           variant="purple"
         />
         <AnalyticsStatCard
           title="Nacidos en Montería"
           value={metricsSummary.porcentajeNacidosMonteria}
-          icon="🏛️"
+          icon={
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0f172a" strokeWidth="2">
+              <path d="M3 21h18" />
+              <path d="M9 8h1" />
+              <path d="M9 12h1" />
+              <path d="M9 16h1" />
+              <path d="M14 8h1" />
+              <path d="M14 12h1" />
+              <path d="M14 16h1" />
+              <path d="M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16" />
+            </svg>
+          }
           subtitle="Población nativa del municipio"
           variant="dark"
         />
         <AnalyticsStatCard
           title="Tasa de Retorno Recurrente"
           value={metricsSummary.tasaRetorno}
-          icon="🔄"
+          icon={
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="2">
+              <polyline points="23 4 23 10 17 10" />
+              <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+            </svg>
+          }
           subtitle="Asistentes a 2 o más jornadas"
           variant="red"
         />
@@ -234,6 +282,7 @@ export default function AdminAnalyticsTab({
             data={ageBreakdown}
             total={totalCiudadanos}
             fillClassName="fill-blue"
+            useRelativeMax={true}
           />
         </article>
       </div>
@@ -258,29 +307,12 @@ export default function AdminAnalyticsTab({
           {topOriginLocations.length > 0 && (
             <div className="analytics-subblock" style={{ marginTop: "16px" }}>
               <h4>Top Lugares de Origen (Fuera de Montería)</h4>
-              <div className="chart-bar-group">
-                {topOriginLocations.map((item) => (
-                  <div className="chart-bar-item" key={item.location}>
-                    <div className="chart-bar-label">
-                      <span>{item.location}</span>
-                      <strong>{item.count} personas</strong>
-                    </div>
-                    <div className="chart-bar-track">
-                      <div
-                        className="chart-bar-fill fill-dark"
-                        style={{
-                          width: `${Math.max(
-                            6,
-                            Math.round(
-                              (item.count / (topOriginLocations[0]?.count || 1)) * 100
-                            )
-                          )}%`,
-                        }}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <AnalyticsBarChart
+                data={Object.fromEntries(topOriginLocations.map((item) => [item.location, item.count]))}
+                total={totalNacidosFuera}
+                fillClassName="fill-dark"
+                useRelativeMax={true}
+              />
             </div>
           )}
         </article>
@@ -307,6 +339,7 @@ export default function AdminAnalyticsTab({
               total={metricsSummary.totalNiñosAcompañantes || 1}
               fillClassName="fill-purple"
               emptyMessage="No hay acompañamiento de niños registrado."
+              useRelativeMax={true}
             />
           </div>
         </article>
@@ -326,6 +359,7 @@ export default function AdminAnalyticsTab({
             data={comunaBreakdown}
             total={totalCiudadanos}
             fillClassName="fill-blue"
+            useRelativeMax={true}
           />
         </article>
 
@@ -347,32 +381,12 @@ export default function AdminAnalyticsTab({
 
           <div className="analytics-subblock" style={{ marginTop: "16px" }}>
             <h4>Top 10 Barrios de Mayor Participación</h4>
-            <div className="chart-bar-group">
-              {topBarrios.length === 0 ? (
-                <div className="empty-state">No hay registros de barrios.</div>
-              ) : (
-                topBarrios.map((b, idx) => {
-                  const max = topBarrios[0]?.count || 1;
-                  const pct = Math.round((b.count / max) * 100);
-                  return (
-                    <div className="chart-bar-item" key={b.name}>
-                      <div className="chart-bar-label">
-                        <span>
-                          {idx + 1}. {b.name}
-                        </span>
-                        <strong>{b.count} registros</strong>
-                      </div>
-                      <div className="chart-bar-track">
-                        <div
-                          className="chart-bar-fill fill-blue"
-                          style={{ width: `${Math.max(4, pct)}%` }}
-                        />
-                      </div>
-                    </div>
-                  );
-                })
-              )}
-            </div>
+            <AnalyticsBarChart
+              data={Object.fromEntries(topBarrios.map((b) => [b.name, b.count]))}
+              total={totalCiudadanos}
+              fillClassName="fill-blue"
+              useRelativeMax={true}
+            />
           </div>
         </article>
       </div>
@@ -408,6 +422,7 @@ export default function AdminAnalyticsTab({
             total={totalCiudadanos}
             fillClassName="fill-red"
             emptyMessage="No hay registros poblacionales."
+            useRelativeMax={true}
           />
 
           {otherSocialGroupSpecs.length > 0 && (
@@ -425,40 +440,23 @@ export default function AdminAnalyticsTab({
         </article>
       </div>
 
-      {/* SECCIÓN 6: CUMPLIMIENTO LEGAL Y ASISTENCIA POR JORNADAS */}
-      <div className="admin-grid-2">
-        <article className="admin-card">
-          <div className="card-title-group">
-            <h3>Cumplimiento Legal y Habeas Data</h3>
-            <span className="card-badge">Gráfico de Dona</span>
-          </div>
-          <p className="card-desc">
-            Autorización de tratamiento de datos personales conforme a la ley colombiana.
-          </p>
-          <AnalyticsPieChart
-            slices={habeasSlices}
-            centerTitle="Habeas Data"
-            centerValue={metricsSummary.porcentajeHabeasData}
-            donutMode={true}
-          />
-        </article>
-
-        <article className="admin-card">
-          <div className="card-title-group">
-            <h3>Ingresos Confirmados por Código de Jornada</h3>
-            <span className="card-badge">Gráfico de Barras</span>
-          </div>
-          <p className="card-desc">
-            Total acumulado de asistentes escaneados con QR por cada evento.
-          </p>
-          <AnalyticsBarChart
-            data={jornadaAttendanceCounts}
-            total={metricsSummary.asistenciasAcumuladas || 1}
-            fillClassName="fill-green"
-            emptyMessage="No hay registros de asistencia por jornada."
-            labelPrefix="Jornada "
-          />
-        </article>
+      {/* SECCIÓN 6: AUDITORÍA Y ASISTENCIA POR JORNADAS */}
+      <div className="admin-card">
+        <div className="card-title-group">
+          <h3>Ingresos Confirmados por Código de Jornada</h3>
+          <span className="card-badge">Gráfico de Barras</span>
+        </div>
+        <p className="card-desc">
+          Total acumulado de asistentes escaneados con QR por cada evento registrado.
+        </p>
+        <AnalyticsBarChart
+          data={jornadaAttendanceCounts}
+          total={metricsSummary.asistenciasAcumuladas || 1}
+          fillClassName="fill-green"
+          emptyMessage="No hay registros de asistencia por jornada."
+          labelPrefix="Jornada "
+          useRelativeMax={true}
+        />
       </div>
     </section>
   );

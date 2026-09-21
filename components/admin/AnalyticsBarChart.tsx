@@ -16,12 +16,14 @@ interface AnalyticsBarChartProps {
   labelPrefix?: string;
   /** Si es verdadero, oculta las barras con conteo cero */
   hideZeroValues?: boolean;
+  /** Si es verdadero (por defecto), la barra del elemento superior llena el 100% de la pista y las demás escalan proporcionalmente */
+  useRelativeMax?: boolean;
 }
 
 /**
- * Componente Gráfico de Barras Horizontales con Llenado Progresivo y Porcentajes.
+ * Componente Gráfico de Barras Horizontales con Llenado Progresivo Escalado y Porcentajes.
  * Principio SOLID - Responsabilidad Única para representación visual en barra.
- * Mobile-First: Barras flexibles y diseño responsive.
+ * Mobile-First: Barras flexibles, legibles y diseño responsivo sin emojis.
  */
 export default function AnalyticsBarChart({
   data,
@@ -30,6 +32,7 @@ export default function AnalyticsBarChart({
   emptyMessage = "No hay registros disponibles.",
   labelPrefix = "",
   hideZeroValues = false,
+  useRelativeMax = true,
 }: AnalyticsBarChartProps) {
   let entries = Object.entries(data);
 
@@ -44,11 +47,17 @@ export default function AnalyticsBarChart({
   }
 
   const safeTotal = total > 0 ? total : 1;
+  const maxCount = Math.max(...entries.map(([, c]) => c), 1);
 
   return (
     <div className="chart-bar-group">
       {entries.map(([label, count]) => {
-        const pct = Math.round((count / safeTotal) * 100);
+        const pctOfTotal = Math.round((count / safeTotal) * 100);
+        // Ancho visual de la barra: relativo al valor máximo o al total global
+        const widthPct = useRelativeMax
+          ? Math.round((count / maxCount) * 100)
+          : pctOfTotal;
+
         return (
           <div className="chart-bar-item" key={label}>
             <div className="chart-bar-label">
@@ -57,13 +66,13 @@ export default function AnalyticsBarChart({
                 {label}
               </span>
               <strong>
-                {count} ({pct}%)
+                {count} {safeTotal > 0 ? `(${pctOfTotal}%)` : ""}
               </strong>
             </div>
             <div className="chart-bar-track">
               <div
                 className={`chart-bar-fill ${fillClassName}`}
-                style={{ width: `${Math.max(count > 0 ? 4 : 0, pct)}%` }}
+                style={{ width: `${Math.max(count > 0 ? 6 : 0, widthPct)}%` }}
               />
             </div>
           </div>
