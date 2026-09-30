@@ -81,13 +81,19 @@ export default function HeroSection() {
           </p>
         </div>
 
-        {/* Botón principal de acción para registro */}
+        {/* Botones principales de acción: Registro de asistencia y Buzón de dudas */}
         <div className="clean-hero__actions">
           <Link
             href="/register"
             className="clean-btn clean-btn--primary clean-btn--lg"
           >
             Registrar mi Asistencia
+          </Link>
+          <Link
+            href="/dudas"
+            className="clean-btn clean-btn--secondary clean-btn--lg"
+          >
+            Dudas e Inquietudes
           </Link>
         </div>
 

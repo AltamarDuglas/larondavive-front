@@ -4,11 +4,13 @@ import { isSupabaseConfigured } from "@/lib/supabaseClient";
 
 interface AdminDashboardHeaderProps {
   onCreateJornada: () => void;
+  onOpenDudasQrModal?: () => void;
   onLogout: () => void;
 }
 
 export default function AdminDashboardHeader({
   onCreateJornada,
+  onOpenDudasQrModal,
   onLogout,
 }: AdminDashboardHeaderProps) {
   return (
@@ -46,6 +48,31 @@ export default function AdminDashboardHeader({
       </div>
 
       <div className="admin-header-actions">
+        {onOpenDudasQrModal && (
+          <button
+            type="button"
+            className="clean-btn clean-btn--secondary"
+            onClick={onOpenDudasQrModal}
+            title="Generar e imprimir el Pendón QR de Dudas e Inquietudes"
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.2"
+              style={{ marginRight: "6px" }}
+            >
+              <rect x="3" y="3" width="7" height="7"></rect>
+              <rect x="14" y="3" width="7" height="7"></rect>
+              <rect x="14" y="14" width="7" height="7"></rect>
+              <rect x="3" y="14" width="7" height="7"></rect>
+            </svg>
+            Pendón QR Dudas
+          </button>
+        )}
+
         <button
           type="button"
           className="clean-btn clean-btn--primary"
@@ -68,3 +95,4 @@ export default function AdminDashboardHeader({
     </section>
   );
 }
+

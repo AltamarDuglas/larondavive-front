@@ -39,6 +39,9 @@ export default function Footer() {
               <Link href="/register">Registrar Asistencia</Link>
             </li>
             <li>
+              <Link href="/dudas">Buzón de Dudas e Inquietudes</Link>
+            </li>
+            <li>
               <Link href="/admin">Panel Administrativo</Link>
             </li>
           </ul>

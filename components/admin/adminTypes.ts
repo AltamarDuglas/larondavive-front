@@ -1,10 +1,10 @@
 // Importación de tipos de registros de Supabase
-import { AsistenteRecord, JornadaRecord, AsistenciaRecord } from "@/lib/supabaseClient";
+import { AsistenteRecord, JornadaRecord, AsistenciaRecord, DudaInquietudRecord } from "@/lib/supabaseClient";
 
 /**
  * Pestañas principales de navegación del panel administrador
  */
-export type AdminTab = "analytics" | "jornadas" | "asistentes";
+export type AdminTab = "analytics" | "jornadas" | "asistentes" | "dudas";
 
 /**
  * Resumen de indicadores clave de rendimiento (KPIs)
@@ -79,4 +79,4 @@ export interface FullAnalyticsData {
   jornadaAttendanceCounts: Record<string, number>;
 }
 
-export type { AsistenteRecord, JornadaRecord, AsistenciaRecord };
+export type { AsistenteRecord, JornadaRecord, AsistenciaRecord, DudaInquietudRecord };

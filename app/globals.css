@@ -21,3 +21,6 @@
 
 /* 5. Panel de administración institucional, tablas, métricas y exportación QR */
 @import './styles/admin.css';
+
+/* 6. Buzón público de dudas e inquietudes ciudadanas y modal QR */
+@import './styles/dudas.css';

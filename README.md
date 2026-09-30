@@ -19,6 +19,7 @@ El sistema reemplaza las planillas físicas manuales por una solución web minim
 - **Analítica para la Alcaldía de Montería:** Medición de asistencia total, registros por QR y tasa de retorno de participantes recurrentes.
 - **Protección de Datos (Habeas Data):** Cumplimiento estricto con la normativa colombiana de tratamiento de información (Secretaría de Cultura de Montería).
 - **Aceptación de Términos del Portafolio de Estímulos 2026:** Inclusión del Manual oficial y la declaración juramentada (Sección 16).
+- **Buzón y Código QR de Dudas e Inquietudes:** Código QR institucional independiente (`/dudas`) para recepción de peticiones, dudas, sugerencias y felicitaciones ciudadanas solicitando: Nombre Completo, Teléfono, Correo Electrónico y Consentimiento de tratamiento de datos personales, con radicado automático y gestión en panel admin.
 
 ---
 
@@ -145,8 +146,21 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY="tu-anon-key-publica"
 
 ### 4. Configuración de Supabase PostgreSQL
 1. Abre tu proyecto en el Dashboard de [Supabase](https://supabase.com).
-2. Ve al **SQL Editor**.
-3. Ejecuta el contenido del archivo [`supabase_schema.sql`](file:///c:/Users/Hewlett-Packard/OneDrive/Desktop/Ronda%20vive/supabase_schema.sql) disponible en la raíz de este proyecto.
+2. Ve al **SQL Editor** (`New Query`).
+3. Ejecuta el esquema completo [`supabase_schema.sql`](file:///c:/Users/Hewlett-Packard/OneDrive/Desktop/Ronda%20vive/supabase_schema.sql) o el script individual para dudas [`sql_dudas_inquietudes.sql`](file:///c:/Users/Hewlett-Packard/OneDrive/Desktop/Ronda%20vive/sql_dudas_inquietudes.sql).
+
+#### 📬 Módulo de Dudas e Inquietudes Ciudadanas (Código QR Independiente)
+Para atender a la ciudadanía que no asiste a registrar asistencia sino que desea resolver inquietudes, se diseñó un canal específico:
+- **Ruta Pública:** `/dudas` (accesible escaneando el QR o desde el portal).
+- **Campos Requeridos al Ciudadano:**
+  - `nombre`: Nombre completo del solicitante.
+  - `telefono`: Celular de contacto para respuesta o WhatsApp institucional.
+  - `correo`: Dirección de correo electrónico activa.
+  - `duda_inquietud`: Detalle de la duda, sugerencia o felicitación.
+  - `consentimiento`: Checkbox obligatorio de aceptación de la Ley 1581 de 2012 (Habeas Data).
+- **Radicado Automático:** El sistema genera un código oficial (ej: `DI-260930-4821`).
+- **Pendón QR para Impresión:** En el panel `/admin`, el botón **"Pendón QR Dudas"** genera el póster PDF horizontal A4 oficial listo para enviar a imprenta.
+- **Tabla en Supabase:** `public.dudas_inquietudes` con RLS habilitado y políticas para inserción pública anónima desde teléfonos móviles.
 
 ### 🗄️ Alternativa: PostgreSQL Independiente y Migración sin Supabase
 Si deseas conectar el proyecto utilizando PostgreSQL independiente (Docker, VPS o nube gestionada como Neon/Railway/AWS) sin depender de Supabase:

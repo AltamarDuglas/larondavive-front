@@ -7,6 +7,9 @@ import {
   exportToPDF,
   getAdminMetrics,
   getAdminSession,
+  getDudasInquietudes,
+  updateDudaInquietudStatus,
+  exportDudasInquietudesCSV,
   signInAdmin,
   signOutAdmin,
   updateJornadaStatus,
@@ -19,6 +22,7 @@ import {
   JornadaRecord,
   MetricsSummary,
   TopBarrio,
+  DudaInquietudRecord,
 } from "./adminTypes";
 import { exportAsistentesToCSV } from "./adminCsvExport";
 
@@ -84,6 +88,10 @@ export function useAdminDashboard() {
   const [selectedComunaFilter, setSelectedComunaFilter] =
     useState<string>("TODAS");
 
+  // Estado del Buzón de Dudas e Inquietudes Ciudadanas
+  const [dudas, setDudas] = useState<DudaInquietudRecord[]>([]);
+  const [isDudasQrModalOpen, setIsDudasQrModalOpen] = useState<boolean>(false);
+
   /**
    * Carga métricas en vivo desde Supabase filtradas opcionalmente por la jornada seleccionada
    */
@@ -118,6 +126,10 @@ export function useAdminDashboard() {
         termsAcceptanceBreakdown: data.termsAcceptanceBreakdown,
         jornadaAttendanceCounts: data.jornadaAttendanceCounts,
       });
+
+      // Cargar dudas e inquietudes registradas
+      const dudasData = await getDudasInquietudes();
+      setDudas(dudasData);
     } catch {
       // El panel conserva su estado previo si falla la consulta remota.
     } finally {
@@ -239,6 +251,31 @@ export function useAdminDashboard() {
     exportAsistentesToCSV(asistentes);
   };
 
+  /**
+   * Manejador para actualizar el estado de una duda ciudadana
+   */
+  const handleUpdateDudaStatus = async (
+    radicado: string,
+    nuevoEstado: 'pendiente' | 'en_revision' | 'atendida',
+    respuesta?: string
+  ) => {
+    setDudas((prev) =>
+      prev.map((d) =>
+        d.radicado === radicado
+          ? { ...d, estado: nuevoEstado, ...(respuesta !== undefined ? { respuesta_institucional: respuesta } : {}) }
+          : d
+      )
+    );
+    await updateDudaInquietudStatus(radicado, nuevoEstado, respuesta);
+  };
+
+  /**
+   * Manejador para exportar las dudas a CSV
+   */
+  const handleExportDudasCSV = () => {
+    exportDudasInquietudesCSV(dudas);
+  };
+
   return {
     activeTab,
     ageBreakdown: fullAnalytics.ageBreakdown,
@@ -280,5 +317,11 @@ export function useAdminDashboard() {
     socialGroupCounts: fullAnalytics.socialGroupCounts,
     topBarrios: fullAnalytics.topBarrios,
     zoneBreakdown: fullAnalytics.zoneBreakdown,
+    // Dudas e Inquietudes
+    dudas,
+    isDudasQrModalOpen,
+    setIsDudasQrModalOpen,
+    handleUpdateDudaStatus,
+    handleExportDudasCSV,
   };
 }

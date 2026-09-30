@@ -10,6 +10,8 @@ import AdminJornadasTab from "@/components/admin/AdminJornadasTab";
 import AdminLoginForm from "@/components/admin/AdminLoginForm";
 import AdminMetricsCards from "@/components/admin/AdminMetricsCards";
 import AdminQrModal from "@/components/admin/AdminQrModal";
+import AdminDudasQrModal from "@/components/admin/AdminDudasQrModal";
+import AdminDudasTab from "@/components/admin/AdminDudasTab";
 import AdminTabs from "@/components/admin/AdminTabs";
 import { useAdminDashboard } from "@/components/admin/useAdminDashboard";
 
@@ -35,6 +37,7 @@ export default function AdminPage() {
           <div className="admin-container">
             <AdminDashboardHeader
               onCreateJornada={() => admin.setIsJornadaModalOpen(true)}
+              onOpenDudasQrModal={() => admin.setIsDudasQrModalOpen(true)}
               onLogout={admin.handleLogout}
             />
 
@@ -44,6 +47,7 @@ export default function AdminPage() {
               activeTab={admin.activeTab}
               asistentesCount={admin.asistentes.length}
               jornadasCount={admin.jornadas.length}
+              dudasCount={admin.dudas.length}
               onTabChange={admin.setActiveTab}
             />
 
@@ -84,6 +88,15 @@ export default function AdminPage() {
               />
             )}
 
+            {admin.activeTab === "dudas" && (
+              <AdminDudasTab
+                dudas={admin.dudas}
+                onOpenQrModal={() => admin.setIsDudasQrModalOpen(true)}
+                onUpdateStatus={admin.handleUpdateDudaStatus}
+                onExportCSV={admin.handleExportDudasCSV}
+              />
+            )}
+
             <AdminJornadaModal
               isOpen={admin.isJornadaModalOpen}
               onClose={() => admin.setIsJornadaModalOpen(false)}
@@ -95,6 +108,11 @@ export default function AdminPage() {
               isOpen={Boolean(admin.selectedQrJornada)}
               onClose={() => admin.setSelectedQrJornada(null)}
             />
+
+            <AdminDudasQrModal
+              isOpen={admin.isDudasQrModalOpen}
+              onClose={() => admin.setIsDudasQrModalOpen(false)}
+            />
           </div>
         )}
       </main>
@@ -103,3 +121,4 @@ export default function AdminPage() {
     </div>
   );
 }
+

@@ -48,6 +48,26 @@ export interface AsistenciaRecord {
   asistente?: AsistenteRecord;
 }
 
+/**
+ * Interface para el registro de Dudas e Inquietudes Ciudadanas (Atención Ciudadana por Código QR).
+ * Principio SOLID - SRP: Modela exclusivamente la estructura de peticiones, consultas, felicitaciones
+ * y solicitudes de los ciudadanos de Montería respecto al programa La Ronda Vive.
+ */
+export interface DudaInquietudRecord {
+  id?: string;
+  radicado: string;
+  nombre: string;
+  telefono: string;
+  correo: string;
+  duda_inquietud: string;
+  consentimiento: boolean;
+  tipo_consulta?: 'Duda / Inquietud' | 'Sugerencia' | 'Felicitación' | 'Petición / Reclamo';
+  estado?: 'pendiente' | 'en_revision' | 'atendida';
+  respuesta_institucional?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
 // Variables de entorno de Supabase (Vercel o .env.local)
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
@@ -1263,4 +1283,268 @@ export function exportToPDF(
 
   const fileName = `Informe_Analitica_Caracterizacion_LaRondaVive_Monteria_${new Date().toISOString().split('T')[0]}.pdf`;
   doc.save(fileName);
+}
+
+// ============================================================================
+// GESTIÓN DE DUDAS E INQUIETUDES CIUDADANAS (ATENCIÓN CIUDADANA POR CÓDIGO QR)
+// Metodología SOLID: Principio de Responsabilidad Única (SRP) y Segregación de Interfaces.
+// ============================================================================
+
+/**
+ * Datos semilla iniciales para el módulo de Dudas e Inquietudes en modo local.
+ */
+export const DEFAULT_INITIAL_DUDAS: DudaInquietudRecord[] = [
+  {
+    radicado: 'DI-260901-1001',
+    nombre: 'María Camila Gómez',
+    telefono: '3001234567',
+    correo: 'maria.gomez@ejemplo.com',
+    duda_inquietud: '¿Cómo puedo postular mi agrupación de danza folclórica para la próxima jornada cultural?',
+    consentimiento: true,
+    tipo_consulta: 'Duda / Inquietud',
+    estado: 'pendiente',
+    created_at: new Date(Date.now() - 86400000 * 2).toISOString(),
+  },
+  {
+    radicado: 'DI-260902-1002',
+    nombre: 'Carlos Mario Restrepo',
+    telefono: '3109876543',
+    correo: 'carlos.restrepo@ejemplo.com',
+    duda_inquietud: 'Excelente organización y eventos. Sugiero colocar puntos adicionales de hidratación y sombra para los adultos mayores.',
+    consentimiento: true,
+    tipo_consulta: 'Sugerencia',
+    estado: 'atendida',
+    respuesta_institucional: 'Agradecemos su sugerencia. Se coordinó con la Secretaría de Cultura el refuerzo de carpas y puntos de agua para las próximas fechas.',
+    created_at: new Date(Date.now() - 86400000 * 5).toISOString(),
+  },
+];
+
+/**
+ * Genera un código de radicado único y legible para la consulta ciudadana.
+ * Formato: DI-AAMMDD-XXXX (Ej: DI-260930-4821)
+ */
+export function generateRadicado(): string {
+  const now = new Date();
+  const yy = String(now.getFullYear()).slice(-2);
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  const dd = String(now.getDate()).padStart(2, '0');
+  const random = Math.floor(1000 + Math.random() * 9000);
+  return `DI-${yy}${mm}${dd}-${random}`;
+}
+
+/**
+ * Registra una nueva duda o inquietud ciudadana proveniente del formulario QR.
+ * Intenta almacenar en la tabla 'dudas_inquietudes' de Supabase y mantiene fallback en localStorage.
+ *
+ * @param input Datos del ciudadano: nombre, teléfono, correo, mensaje y consentimiento
+ * @returns Resultado con el número de radicado generado o el error correspondiente
+ */
+export async function submitDudaInquietud(input: {
+  nombre: string;
+  telefono: string;
+  correo: string;
+  duda_inquietud: string;
+  consentimiento: boolean;
+  tipo_consulta?: 'Duda / Inquietud' | 'Sugerencia' | 'Felicitación' | 'Petición / Reclamo';
+}): Promise<{ success: boolean; radicado?: string; error?: string }> {
+  // Validación de campos requeridos
+  if (!input.nombre.trim()) return { success: false, error: 'Por favor ingresa tu nombre completo.' };
+  if (!input.telefono.trim()) return { success: false, error: 'Por favor ingresa tu número de teléfono.' };
+  if (!input.correo.trim()) return { success: false, error: 'Por favor ingresa un correo electrónico válido.' };
+  if (!input.duda_inquietud.trim()) return { success: false, error: 'Por favor describe tu duda o inquietud.' };
+  if (!input.consentimiento) return { success: false, error: 'Debes autorizar el tratamiento de datos personales.' };
+
+  const radicado = generateRadicado();
+  const newRecord: DudaInquietudRecord = {
+    radicado,
+    nombre: input.nombre.trim(),
+    telefono: input.telefono.trim(),
+    correo: input.correo.trim().toLowerCase(),
+    duda_inquietud: input.duda_inquietud.trim(),
+    consentimiento: input.consentimiento,
+    tipo_consulta: input.tipo_consulta || 'Duda / Inquietud',
+    estado: 'pendiente',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  };
+
+  // 1. Intentar persistir en Supabase
+  let savedInRemote = false;
+  if (supabase) {
+    try {
+      const { error } = await supabase.from('dudas_inquietudes').insert([
+        {
+          radicado: newRecord.radicado,
+          nombre: newRecord.nombre,
+          telefono: newRecord.telefono,
+          correo: newRecord.correo,
+          duda_inquietud: newRecord.duda_inquietud,
+          consentimiento: newRecord.consentimiento,
+          tipo_consulta: newRecord.tipo_consulta,
+          estado: newRecord.estado,
+        },
+      ]);
+      if (!error) {
+        savedInRemote = true;
+      } else {
+        console.warn('Advertencia al insertar en Supabase (dudas_inquietudes):', error.message);
+      }
+    } catch (err) {
+      console.warn('Fallo de red al conectar con Supabase para dudas_inquietudes:', err);
+    }
+  }
+
+  // 2. Persistir siempre en almacenamiento local para resiliencia offline y visualización en admin local
+  if (typeof window !== 'undefined') {
+    try {
+      const raw = localStorage.getItem('rv_dudas_inquietudes');
+      const list: DudaInquietudRecord[] = raw ? JSON.parse(raw) : [];
+      list.unshift(newRecord);
+      localStorage.setItem('rv_dudas_inquietudes', JSON.stringify(list));
+    } catch (e) {
+      console.warn('Error al guardar en localStorage de dudas:', e);
+    }
+  }
+
+  return { success: true, radicado };
+}
+
+/**
+ * Consulta la lista completa de dudas e inquietudes ciudadanas registradas.
+ * Prioriza la base de datos de Supabase con fallback a localStorage y catálogo semilla.
+ */
+export async function getDudasInquietudes(): Promise<DudaInquietudRecord[]> {
+  let list: DudaInquietudRecord[] = [];
+
+  // 1. Consultar base de datos remota Supabase
+  if (supabase) {
+    try {
+      const { data, error } = await supabase
+        .from('dudas_inquietudes')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (!error && data && data.length > 0) {
+        list = data as DudaInquietudRecord[];
+      }
+    } catch {
+      // Fallback a almacenamiento local si falla la red
+    }
+  }
+
+  // 2. Fallback a almacenamiento local si Supabase no tiene datos o no está disponible
+  if (list.length === 0 && typeof window !== 'undefined') {
+    const local = localStorage.getItem('rv_dudas_inquietudes');
+    if (local) {
+      try {
+        list = JSON.parse(local);
+      } catch {
+        list = [];
+      }
+    }
+  }
+
+  // 3. Si aún no hay registros, cargar catálogo semilla demostrativo
+  if (list.length === 0) {
+    list = [...DEFAULT_INITIAL_DUDAS];
+  }
+
+  return list;
+}
+
+/**
+ * Actualiza el estado y opcionalmente la respuesta institucional de una duda ciudadana.
+ *
+ * @param radicado Número de radicado único de la inquietud
+ * @param nuevoEstado Estado actualizado: 'pendiente', 'en_revision' o 'atendida'
+ * @param respuesta Mensaje o respuesta redactada por el funcionario
+ */
+export async function updateDudaInquietudStatus(
+  radicado: string,
+  nuevoEstado: 'pendiente' | 'en_revision' | 'atendida',
+  respuesta?: string
+): Promise<{ success: boolean; error?: string }> {
+  // 1. Actualizar en Supabase si está disponible
+  if (supabase) {
+    try {
+      const updatePayload: Record<string, unknown> = {
+        estado: nuevoEstado,
+        updated_at: new Date().toISOString(),
+      };
+      if (respuesta !== undefined) {
+        updatePayload.respuesta_institucional = respuesta;
+      }
+
+      await supabase
+        .from('dudas_inquietudes')
+        .update(updatePayload)
+        .eq('radicado', radicado);
+    } catch {
+      // Continuar a sincronización local
+    }
+  }
+
+  // 2. Sincronizar en almacenamiento local
+  if (typeof window !== 'undefined') {
+    try {
+      const raw = localStorage.getItem('rv_dudas_inquietudes');
+      let list: DudaInquietudRecord[] = raw ? JSON.parse(raw) : [...DEFAULT_INITIAL_DUDAS];
+      list = list.map((item) => {
+        if (item.radicado === radicado) {
+          return {
+            ...item,
+            estado: nuevoEstado,
+            ...(respuesta !== undefined ? { respuesta_institucional: respuesta } : {}),
+            updated_at: new Date().toISOString(),
+          };
+        }
+        return item;
+      });
+      localStorage.setItem('rv_dudas_inquietudes', JSON.stringify(list));
+    } catch {
+      // Ignorar error local
+    }
+  }
+
+  return { success: true };
+}
+
+/**
+ * Exporta el reporte de Dudas e Inquietudes a formato CSV estandarizado para la Alcaldía de Montería.
+ */
+export function exportDudasInquietudesCSV(dudas: DudaInquietudRecord[]): void {
+  const headers = [
+    'Radicado',
+    'Fecha de Envio',
+    'Nombre Completo',
+    'Telefono',
+    'Correo Electronico',
+    'Tipo de Consulta',
+    'Estado',
+    'Duda o Inquietud',
+    'Respuesta Institucional',
+  ];
+
+  const rows = dudas.map((d) => [
+    `"${d.radicado || ''}"`,
+    `"${d.created_at ? new Date(d.created_at).toLocaleDateString('es-CO') : ''}"`,
+    `"${(d.nombre || '').replace(/"/g, '""')}"`,
+    `"${d.telefono || ''}"`,
+    `"${d.correo || ''}"`,
+    `"${d.tipo_consulta || 'Duda / Inquietud'}"`,
+    `"${d.estado || 'pendiente'}"`,
+    `"${(d.duda_inquietud || '').replace(/"/g, '""')}"`,
+    `"${(d.respuesta_institucional || '').replace(/"/g, '""')}"`,
+  ]);
+
+  const csvContent = '\uFEFF' + [headers.join(','), ...rows.map((r) => r.join(','))].join('\r\n');
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.setAttribute('href', url);
+  link.setAttribute('download', `Dudas_Inquietudes_LaRondaVive_${new Date().toISOString().split('T')[0]}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
 }
