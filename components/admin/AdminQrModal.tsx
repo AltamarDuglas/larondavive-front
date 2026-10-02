@@ -86,8 +86,10 @@ function convertImgToBase64(imgSrc: string, fillWhite = false): Promise<ImageInf
  * Genera un PDF horizontal (landscape) de alto impacto decorado con logos institucionales transparentes.
  */
 export default function AdminQrModal({ jornada, isOpen, onClose }: AdminQrModalProps) {
+  // Estados reactivos declarados al nivel superior cumpliendo estrictamente con las Reglas de los Hooks de React
   const [qrUrl, setQrUrl] = useState<string>('');
   const [isGeneratingPdf, setIsGeneratingPdf] = useState<boolean>(false);
+  const [copied, setCopied] = useState<boolean>(false);
 
   useEffect(() => {
     if (jornada) {
@@ -98,6 +100,7 @@ export default function AdminQrModal({ jornada, isOpen, onClose }: AdminQrModalP
     }
   }, [jornada]);
 
+  // Si el modal está cerrado o no hay jornada seleccionada, se retorna null después de haber ejecutado todos los hooks de forma consistente
   if (!isOpen || !jornada) return null;
 
   const registerUrl = getCleanRegisterUrl(jornada.code);
@@ -331,8 +334,9 @@ export default function AdminQrModal({ jornada, isOpen, onClose }: AdminQrModalP
     window.print();
   };
 
-  const [copied, setCopied] = useState<boolean>(false);
-
+  /**
+   * Copia la URL de registro al portapapeles y activa el estado visual de confirmación.
+   */
   const handleCopyUrl = async () => {
     if (!registerUrl) return;
     try {

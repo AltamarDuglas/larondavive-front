@@ -234,7 +234,8 @@ El Panel Administrador (`/admin`) adopta un enfoque **Mobile-First 100% responsi
 7. **Modal Adaptativo del Pendón QR (`AdminQrModal.tsx`):**
    - Presentación mobile-first completamente responsiva: en dispositivos móviles se apila limpiamente de forma vertical eliminando cualquier desbordamiento o scroll horizontal.
    - En computadores despliega una vista institucional en dos columnas con cabecera de logos oficiales (`Alcaldía de Montería` y `La Ronda Vive`), código único resaltado, instrucciones de escaneo y botón para copiar el enlace directo.
-   - Mantiene intacta la descarga e impresión en alta definición del PDF en formato horizontal (`Landscape A4`).
+8. **Respeto Estricto de las Reglas de Hooks de React en Modales QR:**
+   - Todos los hooks (`useState`, `useEffect`) se invocan en el nivel superior incondicionalmente antes de cualquier cláusula de retorno temprano (`early return`), evitando discrepancias en el conteo de hooks durante el montaje/desmontaje del modal y previniendo el error de React `#310` (*"Rendered more hooks than during the previous render"*).
 
 ---
 
@@ -251,7 +252,3 @@ npm run lint
 ## 📄 Estándar de Código
 
 Todas las acciones, importaciones, decisiones de diseño y componentes están estrictamente **comentados en español** para facilitar el mantenimiento y la comprensión de cualquier desarrollador, sin importar su nivel previo de experiencia. Se trabaja bajo la **metodología SOLID** con código limpio, modular y organizado.
-
-
-
-
