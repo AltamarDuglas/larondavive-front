@@ -34,15 +34,15 @@ interface ImageInfo {
 }
 
 /**
- * Obtiene la URL limpia y pública hacia la página de Dudas e Inquietudes (/dudas).
- * Garantiza que nunca contenga prefijos administrativos.
+ * Obtiene la URL limpia y pública hacia la página de Dudas e Inquietudes (/larondavive/dudas).
+ * Garantiza que siempre apunte a la subruta oficial bajo el dominio en producción o local.
  */
 function getCleanDudasUrl(): string {
   if (typeof window === 'undefined') {
-    return '/dudas';
+    return '/larondavive/dudas';
   }
   const origin = window.location.origin.replace(/\/admin.*$/, '').replace(/\/$/, '');
-  return `${origin}/dudas`;
+  return `${origin}/larondavive/dudas`;
 }
 
 /**
@@ -444,7 +444,7 @@ export default function AdminDudasQrModal({ isOpen, onClose }: AdminDudasQrModal
                 </button>
 
                 <a
-                  href="/dudas"
+                  href={targetUrl}
                   target="_blank"
                   rel="noreferrer"
                   className="clean-btn clean-btn--outline"

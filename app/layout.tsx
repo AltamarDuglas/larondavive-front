@@ -3,6 +3,8 @@ import type { ReactNode } from 'react';
 import './globals.css';
 
 export const metadata: Metadata = {
+  // Base canónica del dominio oficial y subruta institucional para SEO y OpenGraph
+  metadataBase: new URL('https://www.laculturavive.site/larondavive'),
   title: 'La Ronda Vive | Jornada, fotos y comunidad',
   description: 'Plataforma digital para registro por QR, album colectivo, progreso y panel administrativo.'
 };

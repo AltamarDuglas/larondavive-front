@@ -31,15 +31,17 @@ interface ImageInfo {
 
 /**
  * Función auxiliar para obtener la URL limpia de registro a partir del código de la jornada.
- * Garantiza de forma estricta que NUNCA incluya "/admin" ni rutas administrativas.
+ * Garantiza de forma estricta que la URL generada apunte a la subruta oficial de la plataforma:
+ * /larondavive/register?code={code} bajo el dominio en producción (https://www.laculturavive.site)
+ * o en el entorno de desarrollo local.
  */
 function getCleanRegisterUrl(code: string): string {
   if (typeof window === 'undefined') {
-    return `/register?code=${code}`;
+    return `/larondavive/register?code=${code}`;
   }
-  // Se obtiene únicamente el origen público (ej. https://larondavive-front.vercel.app o http://localhost:3000)
+  // Se obtiene únicamente el origen público (ej. https://www.laculturavive.site o http://localhost:3000)
   const origin = window.location.origin.replace(/\/admin.*$/, '').replace(/\/$/, '');
-  return `${origin}/register?code=${code}`;
+  return `${origin}/larondavive/register?code=${code}`;
 }
 
 /**

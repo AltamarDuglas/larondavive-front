@@ -19,7 +19,12 @@ El sistema reemplaza las planillas físicas manuales por una solución web minim
 - **Analítica para la Alcaldía de Montería:** Medición de asistencia total, registros por QR y tasa de retorno de participantes recurrentes.
 - **Protección de Datos (Habeas Data):** Cumplimiento estricto con la normativa colombiana de tratamiento de información (Secretaría de Cultura de Montería).
 - **Aceptación de Términos del Portafolio de Estímulos 2026:** Inclusión del Manual oficial y la declaración juramentada (Sección 16).
-- **Buzón y Código QR de Dudas e Inquietudes:** Código QR institucional independiente (`/dudas`) para recepción de peticiones, dudas, sugerencias y felicitaciones ciudadanas solicitando: Nombre Completo, Teléfono, Correo Electrónico y Consentimiento de tratamiento de datos personales, con radicado automático y gestión en panel admin.
+- **Buzón y Código QR de Dudas e Inquietudes:** Código QR institucional independiente (`/larondavive/dudas`) para recepción de peticiones, dudas, sugerencias y felicitaciones ciudadanas solicitando: Nombre Completo, Teléfono, Correo Electrónico y Consentimiento de tratamiento de datos personales, con radicado automático y gestión en panel admin.
+- **Dominio Oficial y Subruta Base (`basePath: /larondavive`):** La plataforma opera institucionalmente bajo el dominio **`https://www.laculturavive.site`** alojada en la subruta **`/larondavive`**, con redirecciones automáticas desde la raíz para garantizar acceso transparente a todos los ciudadanos y administradores:
+  - **Portal de Inicio:** `https://www.laculturavive.site/larondavive`
+  - **Registro de Asistencia:** `https://www.laculturavive.site/larondavive/register?code=...`
+  - **Buzón de Dudas e Inquietudes:** `https://www.laculturavive.site/larondavive/dudas`
+  - **Panel de Administración:** `https://www.laculturavive.site/larondavive/admin`
 
 ---
 
